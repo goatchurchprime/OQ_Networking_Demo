@@ -1,0 +1,106 @@
+[gd_scene load_steps=21 format=2]
+
+[ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin.tscn" type="PackedScene" id=1]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRCamera.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Main.gd" type="Script" id=3]
+[ext_resource path="res://OQ_Toolkit/OQ_LeftController.tscn" type="PackedScene" id=4]
+[ext_resource path="res://OQ_Toolkit/OQ_RightController.tscn" type="PackedScene" id=5]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DLabel.tscn" type="PackedScene" id=6]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin/Feature_VRSimulator.tscn" type="PackedScene" id=7]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin/Locomotion_Stick.tscn" type="PackedScene" id=8]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin/Locomotion_WalkInPlace.tscn" type="PackedScene" id=9]
+[ext_resource path="res://assets/glider1/glider1.glb" type="PackedScene" id=10]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DCanvas.tscn" type="PackedScene" id=11]
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DLogWindow.tscn" type="PackedScene" id=12]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRController/Feature_UIRayCast.tscn" type="PackedScene" id=13]
+[ext_resource path="res://assets/glider1/glider1.gd" type="Script" id=14]
+
+[sub_resource type="PlaneMesh" id=1]
+size = Vector2( 10, 10 )
+
+[sub_resource type="OpenSimplexNoise" id=2]
+period = 29.5
+
+[sub_resource type="NoiseTexture" id=3]
+noise = SubResource( 2 )
+
+[sub_resource type="SpatialMaterial" id=4]
+albedo_color = Color( 0.945098, 0.639216, 0.286275, 1 )
+albedo_texture = SubResource( 3 )
+
+[sub_resource type="CubeMesh" id=5]
+size = Vector3( 1, 1, 1 )
+
+[sub_resource type="Animation" id=6]
+resource_name = "circuit"
+length = 16.0
+tracks/0/type = "transform"
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = PoolRealArray( 0, 1, 0, 0, -2.77533, 0, 0.987528, 0, -0.157443, 1, 1, 1, 1.2, 1, 0, 0, -3.78535, 0.0132635, 0.984018, -0.0831924, -0.156883, 1, 1, 1, 1.4, 1, 0, 0, -3.78535, 0.0132635, 0.984018, -0.0831924, -0.156883, 1, 1, 1, 1.9, 1, 0, -0.780079, -6.37157, 0.0390107, 0.956734, -0.244687, -0.152533, 1, 1, 1, 2.5, 1, -1.42953, -0.719867, -18.053, -0.060165, 0.983344, -0.0889906, -0.146611, 1, 1, 1, 3.4, 1, -1.42953, -0.719868, -25.2493, -0.165233, 0.9768, 0.0801868, -0.110135, 1, 1, 1, 5.4, 1, -25.0816, -0.719868, -29.5971, 0.176263, -0.667507, -0.292987, 0.661457, 1, 1, 1, 7.8, 1, -33.373, 3.524, -10.079, 0.00455866, -0.243114, -0.34189, 0.907737, 1, 1, 1, 10.5, 1, -26.8271, 12.3566, 15.7204, -0.274403, 0.410102, -0.179025, 0.851158, 1, 1, 1, 12.6, 1, -9.4291, 12.3566, 15.7204, -0.168646, 0.95683, 0.0133235, 0.236342, 1, 1, 1, 15, 1, 0, 0, -2.77533, 0, 0.987528, 0, -0.157443, 1, 1, 1 )
+
+[node name="Main" type="Spatial"]
+script = ExtResource( 3 )
+
+[node name="OQ_ARVROrigin" parent="." instance=ExtResource( 1 )]
+
+[node name="OQ_ARVRCamera" parent="OQ_ARVROrigin" instance=ExtResource( 2 )]
+
+[node name="OQ_LeftController" parent="OQ_ARVROrigin" instance=ExtResource( 4 )]
+
+[node name="OQ_RightController" parent="OQ_ARVROrigin" instance=ExtResource( 5 )]
+
+[node name="Feature_UIRayCast" parent="OQ_ARVROrigin/OQ_RightController" instance=ExtResource( 13 )]
+
+[node name="Feature_VRSimulator" parent="OQ_ARVROrigin" instance=ExtResource( 7 )]
+
+[node name="Locomotion_Stick" parent="OQ_ARVROrigin" instance=ExtResource( 8 )]
+
+[node name="Locomotion_WalkInPlace" parent="OQ_ARVROrigin" instance=ExtResource( 9 )]
+
+[node name="Floor" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0 )
+mesh = SubResource( 1 )
+material/0 = SubResource( 4 )
+
+[node name="Cube" type="MeshInstance" parent="."]
+transform = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 1.87472, 0.5, -4.428 )
+visible = false
+mesh = SubResource( 5 )
+material/0 = null
+
+[node name="OQ_UILabel" parent="." instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.173055, 1.45623, -1.86872 )
+
+[node name="glider1" parent="." instance=ExtResource( 10 )]
+transform = Transform( -0.950424, 0, -0.310958, 0, 1, 0, 0.310958, 0, -0.950424, 0, 0, -2.77533 )
+script = ExtResource( 14 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="glider1"]
+anims/circuit = SubResource( 6 )
+
+[node name="OQ_UI2DCanvas" parent="." instance=ExtResource( 11 )]
+transform = Transform( 0.818411, 0, -0.574634, 0, 1, 0, 0.574634, 0, 0.818411, 1.14703, 1.38333, -1.53757 )
+editor_live_update = false
+transparent = false
+
+[node name="ReferenceRect" type="ReferenceRect" parent="OQ_UI2DCanvas"]
+margin_right = 200.0
+margin_bottom = 200.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button" type="Button" parent="OQ_UI2DCanvas/ReferenceRect"]
+margin_right = 108.0
+margin_bottom = 66.0
+text = "Go!"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OQ_UI2DLogWindow" parent="." instance=ExtResource( 12 )]
+[connection signal="pressed" from="OQ_UI2DCanvas/ReferenceRect/Button" to="glider1" method="glidergo"]

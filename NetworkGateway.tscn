@@ -1,0 +1,86 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=1]
+[ext_resource path="res://NetworkGateway.gd" type="Script" id=2]
+[ext_resource path="res://mqtt.gd" type="Script" id=3]
+
+[node name="NetworkGateway" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource( 1 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Server_Button" type="Button" parent="."]
+margin_left = 24.0
+margin_top = 485.0
+margin_right = 261.0
+margin_bottom = 524.0
+toggle_mode = true
+text = "Make me server"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Client_Button" type="Button" parent="."]
+visible = false
+margin_left = 24.0417
+margin_top = 485.075
+margin_right = 156.042
+margin_bottom = 524.075
+toggle_mode = true
+text = "Connect to server"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IPnumber_Value" type="Label" parent="."]
+margin_left = 278.066
+margin_top = 484.828
+margin_right = 482.066
+margin_bottom = 521.828
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "0.0.0.0"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="UniqueID_Label" type="Label" parent="."]
+margin_left = 22.4272
+margin_top = 537.377
+margin_right = 155.427
+margin_bottom = 570.377
+rect_pivot_offset = Vector2( 103.791, -1.38985 )
+text = "Unique-ID:"
+
+[node name="UniqueID_Value" type="Label" parent="."]
+margin_left = 168.0
+margin_top = 539.0
+margin_right = 983.0
+margin_bottom = 572.0
+rect_pivot_offset = Vector2( 103.791, -1.38985 )
+text = "-----"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Button2" type="Button" parent="."]
+margin_right = 12.0
+margin_bottom = 39.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="mqtt" type="Node" parent="."]
+script = ExtResource( 3 )
+
+[node name="Timer" type="Timer" parent="mqtt"]
+wait_time = 0.17
+[connection signal="toggled" from="Server_Button" to="." method="_on_Server_Button_toggled"]
+[connection signal="toggled" from="Client_Button" to="." method="_on_Client_Button_toggled"]
+[connection signal="received_message" from="mqtt" to="." method="_on_mqtt_received_message"]
+[connection signal="timeout" from="mqtt/Timer" to="mqtt" method="_on_Timer_timeout"]

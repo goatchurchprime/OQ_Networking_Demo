@@ -1,14 +1,13 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://OQ_Toolkit/OQ_UI2D/theme/oq_ui2d_standard.theme" type="Theme" id=1]
 [ext_resource path="res://NetworkGateway.gd" type="Script" id=2]
-[ext_resource path="res://mqtt.gd" type="Script" id=3]
 
 [node name="NetworkGateway" type="Panel"]
 anchor_right = 0.692
 anchor_bottom = 0.252
-margin_right = 0.391968
-margin_bottom = -0.199997
+margin_right = 0.392029
+margin_bottom = 99.8
 theme = ExtResource( 1 )
 script = ExtResource( 2 )
 __meta__ = {
@@ -26,12 +25,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="mqtt" type="Node" parent="."]
-script = ExtResource( 3 )
-
-[node name="Timer" type="Timer" parent="mqtt"]
-wait_time = 0.17
-
 [node name="ColorRect" type="ColorRect" parent="."]
 margin_left = 196.56
 margin_top = 34.2263
@@ -48,11 +41,9 @@ margin_top = 42.7461
 margin_right = 582.819
 margin_bottom = 81.7461
 text = "Local network"
-items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null, "tunnelvr.goatchurch.org.uk", null, false, 4, null ]
+items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null, "tunnelvr.goatchurch.org.uk", null, false, 4, null, "192.168.8.104", null, false, 4, null ]
 selected = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
-[connection signal="received_message" from="mqtt" to="." method="_on_mqtt_received_message"]
-[connection signal="timeout" from="mqtt/Timer" to="mqtt" method="_on_Timer_timeout"]
 [connection signal="item_selected" from="NetworkOptionButton" to="." method="_on_OptionButton_item_selected"]

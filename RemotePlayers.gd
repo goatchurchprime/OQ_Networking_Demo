@@ -1,21 +1,6 @@
 extends Spatial
 
 var playerframestacks = { }
-var localplayer = null
-
-func makelocalplayer(id):
-	assert (localplayer == null)
-	var localplayer = preload("res://RemotePlayer.tscn").instance()
-	var nname = "L%d" % id
-	localplayer.set_name(nname)
-	localplayer.visible = false
-	localplayer.set_network_master(id)
-	
-func removelocalplayer():
-	assert (localplayer != null)
-	remove_child(localplayer)
-	localplayer.queue_free()
-	localplayer = null
 
 func newremoteplayer(t1, id, pdat):
 	var nname = "R%d" % id
@@ -48,9 +33,11 @@ func nextcompressedframe(t1, id, cf):
 	playerframestacks[nname].expandappendframe(t1, cf)
 	
 func _process(delta):
-	var t = OS.get_ticks_msec()*0.001
+	var t = OS.get_ticks_msec()*0.001 - 0.1
 	for nname in playerframestacks:
 		var remoteplayer = get_node(nname)
 		var attributevalues = playerframestacks[nname].interpolatevalues(t)
 		remoteplayer.transform = Transform(attributevalues[1], attributevalues[0])
 		remoteplayer.get_node("HeadCam").transform = Transform(attributevalues[3], attributevalues[2])
+		remoteplayer.get_node("HandLeft").transform = Transform(attributevalues[5], attributevalues[4])
+		remoteplayer.get_node("HandRight").transform = Transform(attributevalues[7], attributevalues[6])

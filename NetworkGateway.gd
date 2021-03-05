@@ -9,7 +9,7 @@ var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to cl
 var uniqueinstancestring = ""
 
 onready var MainNode = get_node("/root/Main")
-onready var PlayersNode = get_node("/root/Main/Players")
+onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
 
 enum NETWORK_OPTIONS {
 	AS_SERVER = 1,
@@ -52,8 +52,12 @@ class RemoteTimeOffsetCalculator:
 	var remotetimegapmin 	= 0
 	var relativetimemax 	= 0
 	var firstrelativetimenotset = true
-	var remotetimegap_dtmax = 0.8  # copied from PlayerMotion.gd
+	var remotetimegap_dtmax = 0.8
+	var DnetworkID			= 0
 	
+	func _init(lDnetworkID):
+		DnetworkID = lDnetworkID
+		
 	func ConvertToLocal(tremote):
 		var tlocal = OS.get_ticks_msec()*0.001
 		var reltime = tlocal - tremote
@@ -72,11 +76,11 @@ class RemoteTimeOffsetCalculator:
 				remotetimegapmaxmin = remotetimegapmin
 			reltimebatchcount = 0
 			if firstrelativetimenotset:
-				print("relativetimeminmax ", relativetimeminmax, "  ", remotetimegapmaxmin)
+				print(DnetworkID, " Relativetimeminmax: ", relativetimeminmax, "  ", remotetimegapmaxmin)
 				firstrelativetimenotset = false
 		if firstrelativetimenotset:
 			return tlocal
-		return tlocal + relativetimeminmax + remotetimegap_dtmax + 0.05
+		return tremote + relativetimeminmax
 
 func getLocalIPnumbers():
 	var localips = [ ]
@@ -104,6 +108,9 @@ func _input(event):
 		elif (event.scancode == KEY_3):
 			$NetworkOptionButton.select(3)
 			_on_OptionButton_item_selected(3)
+		elif (event.scancode == KEY_4):
+			$NetworkOptionButton.select(4)
+			_on_OptionButton_item_selected(4)
 
 
 func _server_disconnected():
@@ -121,7 +128,6 @@ func _connected_to_server():
 	networkID = get_tree().get_network_unique_id()
 	assert (networkID > 1)
 	print("_connected_to_server myid=", networkID)
-	#PlayersNode.rpc("spawnremoteplayer", getplayerinfo())
 	for id in deferred_playerconnections:
 		_player_connected(id)
 	deferred_playerconnections.clear()
@@ -134,44 +140,39 @@ func _connection_failed():
 	networkID = 0
 	deferred_playerconnections.clear()
 	$ColorRect.color = Color.red
-	
-func getplayerinfo():
-	return { FrameInterpolation.CFINDEX.TIMESTAMP:	OS.get_ticks_msec()*0.001,
-			 FrameInterpolation.CFINDEX.ID:			networkID, 
-			 "platform":	MainNode.platform, 
-			 "playercolour":MainNode.playercolour, 
-			 "guardianpoly":MainNode.guardianpoly, 
-			 "frameattributes":MainNode.framefilter.attributedefs }
+
 
 func _player_connected(id):
 	if networkID == -1:
 		deferred_playerconnections.push_back(id)
 		print("_player_connected remote=", id, "  **deferred")
-	else:
-		print("_player_connected remote=", id)
-		assert (networkID >= 1)
-		assert (not remoteplayertimeoffsets.has(id))
-		remoteplayertimeoffsets[id] = RemoteTimeOffsetCalculator.new()
-		print("players_connected_list: ", remoteplayertimeoffsets)
-		rpc_id(id, "spawnremoteplayer", getplayerinfo())
+		return
+	print("_player_connected remote=", id)
+	assert (networkID >= 1)
+	assert (not remoteplayertimeoffsets.has(id))
+	remoteplayertimeoffsets[id] = RemoteTimeOffsetCalculator.new(networkID)
+	print("players_connected_list: ", remoteplayertimeoffsets)
+	var pdat = MainNode.playerinitdata()
+	pdat[FrameInterpolation.CFINDEX.ID] = networkID 
+	rpc_id(id, "spawnintoremoteplayer", pdat)
 	
 func _player_disconnected(id):
 	print("_player_disconnected remote=", id)
 	assert (remoteplayertimeoffsets.has(id))
 	remoteplayertimeoffsets.erase(id)
 	print("players_connected_list: ", remoteplayertimeoffsets)
-	PlayersNode.removeremoteplayer(id)
+	RemotePlayersNode.removeremoteplayer(id)
 
-remote func spawnremoteplayer(pdat):
+remote func spawnintoremoteplayer(pdat):
 	var id = pdat[FrameInterpolation.CFINDEX.ID]
 	assert (remoteplayertimeoffsets.has(id))
 	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(pdat[FrameInterpolation.CFINDEX.TIMESTAMP])
-	PlayersNode.newremoteplayer(t1, id, pdat)
+	RemotePlayersNode.newremoteplayer(t1, id, pdat)
 	
 remote func gnextcompressedframe(cf):
 	var id = cf[FrameInterpolation.CFINDEX.ID]
 	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FrameInterpolation.CFINDEX.TIMESTAMP])
-	PlayersNode.nextcompressedframe(t1, id, cf)
+	RemotePlayersNode.nextcompressedframe(t1, id, cf)
 
 func _process(delta):
 	var ns = $NetworkOptionButton.selected
@@ -181,6 +182,7 @@ func _process(delta):
 			var udpdiscoverybroadcaster = PacketPeerUDP.new()
 			udpdiscoverybroadcaster.connect_to_host("255.255.255.255", udpdiscoveryport)
 			udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
+			print("put UDP onto 255.255.255.255")
 			udpdiscoverybroadcaster.close()
 
 			if networkID == 0:
@@ -207,7 +209,7 @@ func _process(delta):
 			if spkt[0] == "OQServer:":
 				serverIPnumber = peer.get_packet_ip()
 
-	if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns == NETWORK_OPTIONS.FIXED_URL) and (serverIPnumber != "") and networkID == 0:
+	if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns >= NETWORK_OPTIONS.FIXED_URL) and (serverIPnumber != "") and networkID == 0:
 		var networkedmultiplayerenet = NetworkedMultiplayerENet.new()
 		var e = networkedmultiplayerenet.create_client(serverIPnumber, hostportnumber, 0, 0)
 		print("networkedmultiplayerenet createclient ", ("" if e else str(e)))
@@ -224,7 +226,7 @@ func _on_OptionButton_item_selected(ns):
 		udpdiscoveryreceivingserver.stop()
 		udpdiscoveryreceivingserver = null
 
-	if ns == NETWORK_OPTIONS.FIXED_URL:
+	if ns >= NETWORK_OPTIONS.FIXED_URL:
 		serverIPnumber = $NetworkOptionButton.get_item_text(ns)
 
 	if (ns != NETWORK_OPTIONS.AS_SERVER and networkID == 1):

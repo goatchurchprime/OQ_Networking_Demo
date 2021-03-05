@@ -36,10 +36,10 @@ __meta__ = {
 }
 
 [node name="NetworkOptionButton" type="OptionButton" parent="."]
-margin_left = 207.819
-margin_top = 42.7461
-margin_right = 582.819
-margin_bottom = 81.7461
+margin_left = 208.819
+margin_top = 41.7461
+margin_right = 583.819
+margin_bottom = 80.7461
 text = "Local network"
 items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null, "tunnelvr.goatchurch.org.uk", null, false, 4, null, "192.168.8.104", null, false, 4, null ]
 selected = 2

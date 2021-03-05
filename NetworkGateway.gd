@@ -17,6 +17,7 @@ enum NETWORK_OPTIONS {
 	FIXED_URL = 3,
 }
 
+var multicastudpipnum = "239.255.0.0"
 const udpdiscoverybroadcasterperiod = 2.0
 var udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
 var udpdiscoveryport = 4547
@@ -174,15 +175,16 @@ remote func gnextcompressedframe(cf):
 	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FrameInterpolation.CFINDEX.TIMESTAMP])
 	RemotePlayersNode.nextcompressedframe(t1, id, cf)
 
+
 func _process(delta):
 	var ns = $NetworkOptionButton.selected
 	if ns == NETWORK_OPTIONS.AS_SERVER:
 		udpdiscoverybroadcasterperiodtimer -= delta
 		if udpdiscoverybroadcasterperiodtimer < 0 and localipnumbers != "":
 			var udpdiscoverybroadcaster = PacketPeerUDP.new()
-			udpdiscoverybroadcaster.connect_to_host("255.255.255.255", udpdiscoveryport)
+			udpdiscoverybroadcaster.connect_to_host(multicastudpipnum, udpdiscoveryport)
 			udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
-			print("put UDP onto 255.255.255.255")
+			print("put UDP onto ", multicastudpipnum)
 			udpdiscoverybroadcaster.close()
 
 			if networkID == 0:

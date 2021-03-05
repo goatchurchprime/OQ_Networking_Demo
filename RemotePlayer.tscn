@@ -3,7 +3,7 @@
 [ext_resource path="res://OQ_Toolkit/OQ_ARVRController/models3d/OculusQuestTouchController_Left.gltf" type="PackedScene" id=1]
 [ext_resource path="res://OQ_Toolkit/OQ_ARVRController/models3d/OculusQuestTouchController_Right.gltf" type="PackedScene" id=2]
 
-[sub_resource type="CubeMesh" id=16]
+[sub_resource type="CubeMesh" id=1]
 size = Vector3( 0.2, 0.1, 0.1 )
 
 [sub_resource type="SpatialMaterial" id=2]
@@ -80,7 +80,7 @@ transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0, 0, -
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.691634, 0 )
 
 [node name="csgheadmesh" type="CSGMesh" parent="HeadCam"]
-mesh = SubResource( 16 )
+mesh = SubResource( 1 )
 material = SubResource( 2 )
 
 [node name="skullcomponent" type="CSGMesh" parent="HeadCam/csgheadmesh"]
@@ -129,16 +129,14 @@ __meta__ = {
 }
 
 [node name="HandLeft" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.149729, 0.251003, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.5, -0.2 )
 
 [node name="OculusQuestTouchController_Left" parent="HandLeft" instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.237495, 0, 0 )
 
 [node name="HandRight" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.187223, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.5, -0.2 )
 
 [node name="OculusQuestTouchController_Right" parent="HandRight" instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.412085, 0 )
 
 [node name="LaserOrient" type="Spatial" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.411951, 0.678362, 0 )

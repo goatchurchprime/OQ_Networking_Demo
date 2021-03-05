@@ -23,13 +23,9 @@ var framefilter = FrameInterpolation.FrameFilter.new([
 
 onready var NetworkGateway = $OQ_UI2DCanvas/Viewport/NetworkGateway
 
-func _on_oq_static_grab_started(grabbed_object, controller):
-	print(grabbed_object, controller)
-
 func _ready():
-	$OQ_ARVROrigin/OQ_LeftController/Feature_RigidBodyGrab.connect("oq_static_grab_started", self, "_on_oq_static_grab_started")
-
 	randomize()
+	$OQ_ARVROrigin.transform.origin.x += (randi()%20000)/10000.0 - 1.0
 	playercolour = Color.from_hsv((randi()%10000)/10000.0, 0.5 + (randi()%2222)/6666.0, 0.75)
 	print(ARVRServer.get_interfaces())
 	if OS.has_feature("Server"):

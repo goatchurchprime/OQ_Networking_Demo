@@ -1,19 +1,34 @@
 extends Panel
 
-
 export var hostportnumber : int = 4546
-var players_connected_list = [ ]
-var deferred_players_connected_list = [ ]
-var serverIPnumber = "----"
-var connectedtoserver = false
-var networkID = 0
+
+var remoteplayertimeoffsets = { }
+var deferred_playerconnections = [ ]
+var serverIPnumber = ""
+var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to client
+var uniqueinstancestring = ""
+
 onready var MainNode = get_node("/root/Main")
 onready var PlayersNode = get_node("/root/Main/Players")
 
+enum NETWORK_OPTIONS {
+	AS_SERVER = 1,
+	LOCAL_NETWORK = 2,
+	FIXED_URL = 3,
+}
+
+const udpdiscoverybroadcasterperiod = 2.0
+var udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
+var udpdiscoveryport = 4547
+var udpdiscoveryreceivingserver = null
+
+var localipnumbers = ""
 # mosquitto_sub -h mosquitto.doesliverpool.xyz -v -t "godot/#"
 
 func _ready():
-	$UniqueID_Value.set_text(OS.get_unique_id());
+	randomize()
+	uniqueinstancestring = OS.get_unique_id().replace("{", "").split("-")[0].to_upper()+"_"+str(randi())
+
 	get_tree().connect("network_peer_connected", 	self, "_player_connected")
 	get_tree().connect("network_peer_disconnected", self, "_player_disconnected")
 
@@ -21,139 +36,198 @@ func _ready():
 	get_tree().connect("connection_failed", 		self, "_connection_failed")
 	get_tree().connect("server_disconnected", 		self, "_server_disconnected")
 
+	yield(get_tree().create_timer(1.5), "timeout")
+	localipnumbers = getLocalIPnumbers()
+	print("localipnumbers ", localipnumbers)
 	if OS.has_feature("Server"):
-		yield(get_tree().create_timer(2.5), "timeout")
-		$Server_Button.pressed = true
-	else:
-		$mqtt.establishconnection("godot/client/"+$mqtt.client_id, "connected", "disconnected", "godot/server/1")
+		$NetworkOptionButton.select(NETWORK_OPTIONS.AS_SERVER)
+	_on_OptionButton_item_selected($NetworkOptionButton.selected)
+	set_network_master(0)
 
-func getIPnumber():
-	print("IP local interfaces: ")
-	var ipnumres = ""
+class RemoteTimeOffsetCalculator:
+	var relativetimeminmax 	= 0
+	var remotetimegapmaxmin = 0
+	var prevremotetime 		= 0
+	var reltimebatchcount 	= 0
+	var remotetimegapmin 	= 0
+	var relativetimemax 	= 0
+	var firstrelativetimenotset = true
+	var remotetimegap_dtmax = 0.8  # copied from PlayerMotion.gd
+	
+	func ConvertToLocal(tremote):
+		var tlocal = OS.get_ticks_msec()*0.001
+		var reltime = tlocal - tremote
+		if reltimebatchcount == 0 or reltime > relativetimemax:
+			relativetimemax = reltime
+		if reltimebatchcount > 0:
+			var remotetimegap = tremote - prevremotetime
+			if reltimebatchcount == 1 or remotetimegap < remotetimegapmin:
+				remotetimegapmin = remotetimegap
+		reltimebatchcount += 1
+		prevremotetime = tremote
+		if reltimebatchcount == 10:
+			if firstrelativetimenotset or relativetimemax < relativetimeminmax:
+				relativetimeminmax = relativetimemax
+			if firstrelativetimenotset or remotetimegapmin > remotetimegapmaxmin:
+				remotetimegapmaxmin = remotetimegapmin
+			reltimebatchcount = 0
+			if firstrelativetimenotset:
+				print("relativetimeminmax ", relativetimeminmax, "  ", remotetimegapmaxmin)
+				firstrelativetimenotset = false
+		if firstrelativetimenotset:
+			return tlocal
+		return tlocal + relativetimeminmax + remotetimegap_dtmax + 0.05
+
+func getLocalIPnumbers():
+	var localips = [ ]
 	for k in IP.get_local_interfaces():
-		var ipnum = ""
 		for l in k["addresses"]:
-			if l.find(".") != -1:
-				ipnum = l
-		print(k["friendly"] + ": " + ipnum)
-		if k["friendly"] == "Wi-Fi" or k["friendly"].begins_with("wlan"):
-			ipnumres = ipnum
-		elif k["friendly"] == "Ethernet" and ipnumres == "":
-			ipnumres = ipnum
-	return ipnumres
-
-func _on_Server_Button_toggled(button_pressed):
-	if button_pressed:
-		var networkedmultiplayerenet = NetworkedMultiplayerENet.new()
-		var e = networkedmultiplayerenet.create_server(hostportnumber)
-		if e == 0:
-			get_tree().set_network_peer(networkedmultiplayerenet)
-			var ipnumber = getIPnumber()
-			var ipaddress = "%s:%d"%[ipnumber, hostportnumber]
-			$IPnumber_Value.set_text(ipaddress)
-			$mqtt.establishconnection("godot/server/1", ipaddress, "----", "")
-			connectedtoserver = true
-			networkID = get_tree().get_network_unique_id()
-		else:
-			print("networkedmultiplayerenet createserver Error: ", {ERR_CANT_CREATE:"ERR_CANT_CREATE"}.get(e, e))
-			print("*** is there a server running on this port already? ", hostportnumber)
-			$IPnumber_Value.set_text("server error")
-			$Server_Button.pressed = false   # this causes it to call _on_Server_Button_toggled(false)
-
-	else:
-		while players_connected_list:
-			_player_disconnected(players_connected_list[-1])
-		if get_tree().get_network_peer() != null:
-			get_tree().get_network_peer().close_connection()
-			get_tree().set_network_peer(null)
-			$IPnumber_Value.set_text("server off")
-		connectedtoserver = false
-		networkID = get_tree().get_network_unique_id()
-		$mqtt.establishconnection("godot/client/"+$mqtt.client_id, "connected", "disconnected", "godot/server/1")
-		
-
-func _on_mqtt_received_message(topic, message):
-	print("MQTT RECEIVED: ", topic, ": ", message)
-	if topic == "godot/server/1":
-		var sm = message.split(":")
-		if len(sm) == 2:
-			serverIPnumber = sm[0]
-			hostportnumber = int(sm[1])
-		else:
-			serverIPnumber = message
-		if serverIPnumber.is_valid_ip_address():
-			if $Server_Button.pressed:
-				$Server_Button.pressed = false
-			$Server_Button.visible = false
-			$Client_Button.visible = true
-		else:
-			if $Client_Button.pressed:
-				$Client_Button.pressed = false
-			$Client_Button.visible = false
-			$Server_Button.visible = true
-		$IPnumber_Value.set_text(message)
+			if l.is_valid_ip_address() and l.find(".") != -1:
+				var ls = l.split(".")
+				print("ipaddress ", ls)
+				if int(ls[0]) == 10 or (int(ls[0]) == 172 and int(ls[1]) >= 16 and int(ls[1]) <= 31) or \
+						(int(ls[0]) == 192 and int(ls[1]) == 168):
+					localips.push_back(l)
+	return PoolStringArray(localips).join(",")
 
 func _input(event):
 	if event is InputEventKey and event.pressed:
-		if event.scancode == KEY_N:
-			if $Server_Button.visible:
-				$Server_Button.pressed = not $Server_Button.pressed
-			if $Client_Button.visible:
-				$Client_Button.pressed = not $Client_Button.pressed
+		if (event.scancode == KEY_0):
+			$NetworkOptionButton.select(0)
+			_on_OptionButton_item_selected(0)
+		elif (event.scancode == KEY_1):
+			$NetworkOptionButton.select(1)
+			_on_OptionButton_item_selected(1)
+		elif (event.scancode == KEY_2):
+			$NetworkOptionButton.select(2)
+			_on_OptionButton_item_selected(2)
+		elif (event.scancode == KEY_3):
+			$NetworkOptionButton.select(3)
+			_on_OptionButton_item_selected(3)
 
-func _on_Client_Button_toggled(button_pressed):
-	if button_pressed:
-		if serverIPnumber.is_valid_ip_address():
-			var networkedmultiplayerenet = NetworkedMultiplayerENet.new()
-			var e = networkedmultiplayerenet.create_client(serverIPnumber, hostportnumber, 0, 0)
-			print("networkedmultiplayerenet createclient ", ("" if e else str(e)))
-			get_tree().set_network_peer(networkedmultiplayerenet)
-	elif get_tree().get_network_peer() != null:
-		get_tree().get_network_peer().close_connection()
-		_server_disconnected()
 
 func _server_disconnected():
-	$Client_Button.pressed = false
-	connectedtoserver = false
+	var ns = $NetworkOptionButton.selected
 	get_tree().set_network_peer(null)
-	while players_connected_list:
-		_player_disconnected(players_connected_list[-1])
 	networkID = get_tree().get_network_unique_id()
-	deferred_players_connected_list.clear()
+	assert (networkID == 0)
+	deferred_playerconnections.clear()
+	for id in remoteplayertimeoffsets.keys():
+		_player_disconnected(id)
 	print("*** _server_disconnected ", networkID)
-	
+	$ColorRect.color = Color.red if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns == NETWORK_OPTIONS.FIXED_URL) else Color.black
+
 func _connected_to_server():
 	networkID = get_tree().get_network_unique_id()
-	connectedtoserver = true
-	print("_connected_to_server: ", networkID)
-	PlayersNode.rpc("spawnotherplayer", getplayerinfo())
-	while len(deferred_players_connected_list) != 0:
-		print("deferred_players_connected_list ", deferred_players_connected_list)
-		_player_connected(deferred_players_connected_list.pop_back())
+	assert (networkID > 1)
+	print("_connected_to_server myid=", networkID)
+	#PlayersNode.rpc("spawnremoteplayer", getplayerinfo())
+	for id in deferred_playerconnections:
+		_player_connected(id)
+	deferred_playerconnections.clear()
+	$ColorRect.color = Color.green
 
 func _connection_failed():
 	print("_connection_failed ", networkID)
-	assert (not connectedtoserver)
-	networkID = get_tree().get_network_unique_id()
-	deferred_players_connected_list.clear()
-	$Client_Button.pressed = false 
-
+	assert (networkID == -1)
+	get_tree().set_network_peer(null)	
+	networkID = 0
+	deferred_playerconnections.clear()
+	$ColorRect.color = Color.red
+	
 func getplayerinfo():
-	return { "networkID":networkID, "platform":MainNode.platform, "playercolour":MainNode.playercolour, "guardianpoly":MainNode.guardianpoly }
+	return { FrameInterpolation.CFINDEX.TIMESTAMP:	OS.get_ticks_msec()*0.001,
+			 FrameInterpolation.CFINDEX.ID:			networkID, 
+			 "platform":	MainNode.platform, 
+			 "playercolour":MainNode.playercolour, 
+			 "guardianpoly":MainNode.guardianpoly, 
+			 "frameattributes":MainNode.framefilter.attributedefs }
 
 func _player_connected(id):
-	print("_player_connected ", id)
-	if networkID == 0:
-		deferred_players_connected_list.push_back(id)
-		print("  deferred")
+	if networkID == -1:
+		deferred_playerconnections.push_back(id)
+		print("_player_connected remote=", id, "  **deferred")
 	else:
-		assert (connectedtoserver)
-		players_connected_list.push_back(id)
-		print("players_connected_list: ", players_connected_list)
-		PlayersNode.rpc_id(id, "spawnotherplayer", getplayerinfo())
-
+		print("_player_connected remote=", id)
+		assert (networkID >= 1)
+		assert (not remoteplayertimeoffsets.has(id))
+		remoteplayertimeoffsets[id] = RemoteTimeOffsetCalculator.new()
+		print("players_connected_list: ", remoteplayertimeoffsets)
+		rpc_id(id, "spawnremoteplayer", getplayerinfo())
+	
 func _player_disconnected(id):
-	print("_player_disconnected ", id)
-	players_connected_list.erase(id)
-	print("players_connected_list: ", players_connected_list)
-	PlayersNode.removeotherplayer(id)
+	print("_player_disconnected remote=", id)
+	assert (remoteplayertimeoffsets.has(id))
+	remoteplayertimeoffsets.erase(id)
+	print("players_connected_list: ", remoteplayertimeoffsets)
+	PlayersNode.removeremoteplayer(id)
+
+remote func spawnremoteplayer(pdat):
+	var id = pdat[FrameInterpolation.CFINDEX.ID]
+	assert (remoteplayertimeoffsets.has(id))
+	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(pdat[FrameInterpolation.CFINDEX.TIMESTAMP])
+	PlayersNode.newremoteplayer(t1, id, pdat)
+	
+remote func gnextcompressedframe(cf):
+	var id = cf[FrameInterpolation.CFINDEX.ID]
+	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FrameInterpolation.CFINDEX.TIMESTAMP])
+	PlayersNode.nextcompressedframe(t1, id, cf)
+
+func _process(delta):
+	var ns = $NetworkOptionButton.selected
+	if ns == NETWORK_OPTIONS.AS_SERVER:
+		udpdiscoverybroadcasterperiodtimer -= delta
+		if udpdiscoverybroadcasterperiodtimer < 0 and localipnumbers != "":
+			var udpdiscoverybroadcaster = PacketPeerUDP.new()
+			udpdiscoverybroadcaster.connect_to_host("255.255.255.255", udpdiscoveryport)
+			udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
+			udpdiscoverybroadcaster.close()
+
+			if networkID == 0:
+				var networkedmultiplayerenetserver = NetworkedMultiplayerENet.new()
+				var e = networkedmultiplayerenetserver.create_server(hostportnumber)
+				if e == 0:
+					get_tree().set_network_peer(networkedmultiplayerenetserver)
+					networkID = get_tree().get_network_unique_id()
+					assert (networkID == 1)
+					$ColorRect.color = Color.green
+				else:
+					print("networkedmultiplayerenet createserver Error: ", {ERR_CANT_CREATE:"ERR_CANT_CREATE"}.get(e, e))
+					print("*** is there a server running on this port already? ", hostportnumber)
+					$ColorRect.color = Color.red
+			udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
+
+	elif (ns == NETWORK_OPTIONS.LOCAL_NETWORK) and (udpdiscoveryreceivingserver != null) and networkID == 0:
+		udpdiscoveryreceivingserver.poll()
+		if udpdiscoveryreceivingserver.is_connection_available():
+			var peer = udpdiscoveryreceivingserver.take_connection()
+			var pkt = peer.get_packet()
+			var spkt = pkt.get_string_from_utf8().split(" ")
+			print("Received: ", spkt, " from ", peer.get_packet_ip())
+			if spkt[0] == "OQServer:":
+				serverIPnumber = peer.get_packet_ip()
+
+	if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns == NETWORK_OPTIONS.FIXED_URL) and (serverIPnumber != "") and networkID == 0:
+		var networkedmultiplayerenet = NetworkedMultiplayerENet.new()
+		var e = networkedmultiplayerenet.create_client(serverIPnumber, hostportnumber, 0, 0)
+		print("networkedmultiplayerenet createclient ", ("" if e else str(e)))
+		get_tree().set_network_peer(networkedmultiplayerenet)
+		$ColorRect.color = Color.yellow
+		networkID = -1
+
+func _on_OptionButton_item_selected(ns):
+	if ns == NETWORK_OPTIONS.LOCAL_NETWORK:
+		udpdiscoveryreceivingserver = UDPServer.new()
+		udpdiscoveryreceivingserver.listen(udpdiscoveryport)
+
+	elif udpdiscoveryreceivingserver != null:
+		udpdiscoveryreceivingserver.stop()
+		udpdiscoveryreceivingserver = null
+
+	if ns == NETWORK_OPTIONS.FIXED_URL:
+		serverIPnumber = $NetworkOptionButton.get_item_text(ns)
+
+	if (ns != NETWORK_OPTIONS.AS_SERVER and networkID == 1):
+		_server_disconnected()
+
+

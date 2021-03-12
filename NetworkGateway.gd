@@ -2,14 +2,11 @@ extends Panel
 
 export var hostportnumber : int = 4546
 
-var remoteplayertimeoffsets = { }
-var deferred_playerconnections = [ ]
-var serverIPnumber = ""
-var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to client
-var uniqueinstancestring = ""
-
-onready var MainNode = get_node("/root/Main")
-onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
+var remoteservers = [ "tunnelvr.goatchurch.org.uk", 
+					  "192.168.8.104 Quest"]
+var multicastudpipnum = "255.255.255.255"
+const udpdiscoverybroadcasterperiod = 2.0
+var udpdiscoveryport = 4547
 
 enum NETWORK_OPTIONS {
 	AS_SERVER = 1,
@@ -17,18 +14,23 @@ enum NETWORK_OPTIONS {
 	FIXED_URL = 3,
 }
 
-var multicastudpipnum = "239.255.0.0"
-const udpdiscoverybroadcasterperiod = 2.0
+onready var MainNode = get_node("/root/Main")
+onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
 var udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
-var udpdiscoveryport = 4547
 var udpdiscoveryreceivingserver = null
 
 var localipnumbers = ""
-# mosquitto_sub -h mosquitto.doesliverpool.xyz -v -t "godot/#"
+var remoteplayertimeoffsets = { }
+var deferred_playerconnections = [ ]
+var serverIPnumber = ""
+var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to client
+var uniqueinstancestring = ""
 
 func _ready():
 	randomize()
 	uniqueinstancestring = OS.get_unique_id().replace("{", "").split("-")[0].to_upper()+"_"+str(randi())
+	for rs in remoteservers:
+		$NetworkOptionButton.add_item(rs)
 
 	get_tree().connect("network_peer_connected", 	self, "_player_connected")
 	get_tree().connect("network_peer_disconnected", self, "_player_disconnected")
@@ -43,7 +45,7 @@ func _ready():
 	if OS.has_feature("Server"):
 		$NetworkOptionButton.select(NETWORK_OPTIONS.AS_SERVER)
 	_on_OptionButton_item_selected($NetworkOptionButton.selected)
-	set_network_master(0)
+
 
 class RemoteTimeOffsetCalculator:
 	var relativetimeminmax 	= 0
@@ -112,6 +114,9 @@ func _input(event):
 		elif (event.scancode == KEY_4):
 			$NetworkOptionButton.select(4)
 			_on_OptionButton_item_selected(4)
+		elif (event.scancode == KEY_G):
+			$Doppelganger.pressed = not $Doppelganger.pressed
+
 
 
 func _server_disconnected():
@@ -154,7 +159,7 @@ func _player_connected(id):
 	remoteplayertimeoffsets[id] = RemoteTimeOffsetCalculator.new(networkID)
 	print("players_connected_list: ", remoteplayertimeoffsets)
 	var pdat = MainNode.playerinitdata()
-	pdat[FrameInterpolation.CFINDEX.ID] = networkID 
+	pdat[FI.CFI.ID] = networkID 
 	rpc_id(id, "spawnintoremoteplayer", pdat)
 	
 func _player_disconnected(id):
@@ -162,18 +167,19 @@ func _player_disconnected(id):
 	assert (remoteplayertimeoffsets.has(id))
 	remoteplayertimeoffsets.erase(id)
 	print("players_connected_list: ", remoteplayertimeoffsets)
-	RemotePlayersNode.removeremoteplayer(id)
+	RemotePlayersNode.removeremoteplayer("R%d"%id)
 
 remote func spawnintoremoteplayer(pdat):
-	var id = pdat[FrameInterpolation.CFINDEX.ID]
+	var id = pdat[FI.CFI.ID]
 	assert (remoteplayertimeoffsets.has(id))
-	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(pdat[FrameInterpolation.CFINDEX.TIMESTAMP])
-	RemotePlayersNode.newremoteplayer(t1, id, pdat)
-	
+	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(pdat[FI.CFI.TIMESTAMP])
+	var remoteplayer = RemotePlayersNode.newremoteplayer(t1, "R%d"%id, pdat)
+	remoteplayer.set_network_master(id)
+			
 remote func gnextcompressedframe(cf):
-	var id = cf[FrameInterpolation.CFINDEX.ID]
-	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FrameInterpolation.CFINDEX.TIMESTAMP])
-	RemotePlayersNode.nextcompressedframe(t1, id, cf)
+	var id = cf[FI.CFI.ID]
+	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FI.CFI.TIMESTAMP])
+	RemotePlayersNode.nextcompressedframe(t1, "R%d"%id, cf)
 
 
 func _process(delta):
@@ -235,3 +241,13 @@ func _on_OptionButton_item_selected(ns):
 		_server_disconnected()
 
 
+func _on_Doppelganger_toggled(button_pressed):
+	if button_pressed:
+		var pdat = MainNode.playerinitdata()
+		pdat[FI.CFI.XRORIGIN] += Vector3(0,0,-2.0)
+		pdat[FI.CFI.XRBASIS] = FI.QuattoV3(FI.V3toQuat(pdat[FI.CFI.XRBASIS])*Quat(Vector3(0,1,0), PI))
+		var remoteplayer = RemotePlayersNode.newremoteplayer(OS.get_ticks_msec()*0.001, "Doppelganger", pdat)
+	else:
+		RemotePlayersNode.removeremoteplayer("Doppelganger")
+		
+		

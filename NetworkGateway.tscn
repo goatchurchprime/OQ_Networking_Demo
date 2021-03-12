@@ -36,9 +36,9 @@ __meta__ = {
 }
 
 [node name="NetworkOptionButton" type="OptionButton" parent="."]
-margin_left = 208.819
+margin_left = 212.599
 margin_top = 41.7461
-margin_right = 583.819
+margin_right = 587.599
 margin_bottom = 80.7461
 text = "Local network"
 items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null, "tunnelvr.goatchurch.org.uk", null, false, 4, null, "192.168.8.104", null, false, 4, null ]
@@ -46,4 +46,15 @@ selected = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Doppelganger" type="CheckBox" parent="."]
+margin_left = 32.748
+margin_top = 96.7401
+margin_right = 235.748
+margin_bottom = 141.74
+text = "doppelganger"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 [connection signal="item_selected" from="NetworkOptionButton" to="." method="_on_OptionButton_item_selected"]
+[connection signal="toggled" from="Doppelganger" to="." method="_on_Doppelganger_toggled"]

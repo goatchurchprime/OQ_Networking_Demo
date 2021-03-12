@@ -53,11 +53,11 @@ visible = false
 [node name="Locomotion_Stick" parent="OQ_ARVROrigin" instance=ExtResource( 8 )]
 
 [node name="RemoteTransform" type="RemoteTransform" parent="OQ_ARVROrigin"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -0.4 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -0.4 )
 remote_path = NodePath("../../OQ_UI2DCanvas")
 
 [node name="OQ_UI2DCanvas" parent="." instance=ExtResource( 10 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -0.4 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -0.4 )
 
 [node name="NetworkGateway" parent="OQ_UI2DCanvas" instance=ExtResource( 11 )]
 anchor_right = 0.696

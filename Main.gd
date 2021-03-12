@@ -10,16 +10,17 @@ var ovr_performance = null
 var ovr_hand_tracking = null
 var ovr_guardian_system = null
 
-var framefilter = FrameInterpolation.FrameFilter.new([
-			{"name":"xrorigin", "type":"V3", "precision":0.002}, 
-			{"name":"xrbasis",  "type":"B",  "precision":0.005}, 
-			{"name":"xrcameraorigin", "type":"V3", "precision":0.002}, 
-			{"name":"xrcamerabasis",  "type":"B",  "precision":0.005},
-			{"name":"xrleftorigin", "type":"V3", "precision":0.002}, 
-			{"name":"xrleftbasis",  "type":"B",  "precision":0.005}, 
-			{"name":"xrrightorigin", "type":"V3", "precision":0.002}, 
-			{"name":"xrrightbasis",  "type":"B",  "precision":0.005}, 
-				])
+var fiattributes = { 
+	FI.CFI.XRORIGIN:		{"name":"xrorigin", "type":"V3", "precision":0.002},
+	FI.CFI.XRBASIS:			{"name":"xrbasis",  "type":"B",  "precision":0.005}, 
+	FI.CFI.XRCAMERAORIGIN:	{"name":"xrcameraorigin", "type":"V3", "precision":0.002}, 
+	FI.CFI.XRCAMERABASIS:	{"name":"xrcamerabasis",  "type":"B",  "precision":0.005},
+	FI.CFI.XRLEFTORIGIN:	{"name":"xrleftorigin", "type":"V3", "precision":0.002}, 
+	FI.CFI.XRLEFTBASIS:		{"name":"xrleftbasis",  "type":"B",  "precision":0.005}, 
+	FI.CFI.XRRIGHTORIGIN:	{"name":"xrrightorigin", "type":"V3", "precision":0.002}, 
+	FI.CFI.XRRIGHTBASIS:	{"name":"xrrightbasis",  "type":"B",  "precision":0.005}, 
+}
+var framefilter = FI.FrameFilter.new(fiattributes)
 
 onready var NetworkGateway = $OQ_UI2DCanvas/Viewport/NetworkGateway
 
@@ -51,23 +52,23 @@ func _ready():
 			ovr_hand_tracking = load("res://addons/godot_ovrmobile/OvrHandTracking.gdns").new();
 			ovr_guardian_system = load("res://addons/godot_ovrmobile/OvrGuardianSystem.gdns").new();
 			guardianpoly = ovr_guardian_system.get_boundary_geometry()
-			print("guardianpoly ", guardianpoly)
 
 func playerframedata():
-	return [ $OQ_ARVROrigin.transform.origin, 
-			 $OQ_ARVROrigin.transform.basis, 
-			 $OQ_ARVROrigin/OQ_ARVRCamera.transform.origin, 
-			 $OQ_ARVROrigin/OQ_ARVRCamera.transform.basis,
-			 $OQ_ARVROrigin/OQ_LeftController.transform.origin, 
-			 $OQ_ARVROrigin/OQ_LeftController.transform.basis,
-			 $OQ_ARVROrigin/OQ_RightController.transform.origin, 
-			 $OQ_ARVROrigin/OQ_RightController.transform.basis
-		   ]
-
+	return { 
+		FI.CFI.XRORIGIN:		$OQ_ARVROrigin.transform.origin,
+		FI.CFI.XRBASIS:			$OQ_ARVROrigin.transform.basis, 
+		FI.CFI.XRCAMERAORIGIN:	$OQ_ARVROrigin/OQ_ARVRCamera.transform.origin, 
+		FI.CFI.XRCAMERABASIS:	$OQ_ARVROrigin/OQ_ARVRCamera.transform.basis,
+		FI.CFI.XRLEFTORIGIN:	$OQ_ARVROrigin/OQ_LeftController.transform.origin, 
+		FI.CFI.XRLEFTBASIS:		$OQ_ARVROrigin/OQ_LeftController.transform.basis, 
+		FI.CFI.XRRIGHTORIGIN:	$OQ_ARVROrigin/OQ_RightController.transform.origin, 
+		FI.CFI.XRRIGHTBASIS:	$OQ_ARVROrigin/OQ_RightController.transform.basis 
+	}
+	
 func playerinitdata():
 	var tstamp = OS.get_ticks_msec()*0.001
 	var pdat = framefilter.CompressFrame(playerframedata(), true)
-	pdat[FrameInterpolation.CFINDEX.TIMESTAMP] = tstamp
+	pdat[FI.CFI.TIMESTAMP] = tstamp
 	pdat["platform"]  = platform
 	pdat["playercolour"] = playercolour
 	pdat["guardianpoly"] = guardianpoly
@@ -75,11 +76,13 @@ func playerinitdata():
 	return pdat
 		
 func _physics_process(delta):
-	if NetworkGateway.networkID > 0:
-		var tstamp = OS.get_ticks_msec()*0.001
-		var cf = framefilter.CompressFrame(playerframedata(), false)
-		if len(cf) != 0:
-			cf[FrameInterpolation.CFINDEX.TIMESTAMP] = tstamp
-			cf[FrameInterpolation.CFINDEX.ID] = NetworkGateway.networkID
+	var tstamp = OS.get_ticks_msec()*0.001
+	var cf = framefilter.CompressFrame(playerframedata(), false)
+	if len(cf) != 0:
+		cf[FI.CFI.TIMESTAMP] = tstamp
+		if NetworkGateway.networkID > 0:
+			cf[FI.CFI.ID] = NetworkGateway.networkID
 			NetworkGateway.rpc("gnextcompressedframe", cf)
-
+		if $RemotePlayers.has_node("Doppelganger"):
+			$RemotePlayers.nextcompressedframe(tstamp, "Doppelganger", cf)
+			

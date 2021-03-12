@@ -74,7 +74,6 @@ metallic = 0.41
 roughness = 0.45
 
 [node name="RemotePlayer" type="Spatial"]
-transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0, 0, -8 )
 
 [node name="HeadCam" type="Spatial" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.691634, 0 )

@@ -69,20 +69,43 @@ func playerinitdata():
 	var tstamp = OS.get_ticks_msec()*0.001
 	var pdat = framefilter.CompressFrame(playerframedata(), true)
 	pdat[FI.CFI.TIMESTAMP] = tstamp
+	pdat[FI.CFI.PREV_TIMESTAMP] = tstamp
 	pdat["platform"]  = platform
 	pdat["playercolour"] = playercolour
 	pdat["guardianpoly"] = guardianpoly
 	pdat["frameattributes"] = framefilter.attributedefs
 	return pdat
 		
+var framerateratereducer = 5
+var framecount = 0
+var doppelgangertimeoffset = 10.0
+var doppelgangerdelaystack = [ ]
+var cumulativetime = 0.0
 func _physics_process(delta):
+	cumulativetime += delta
 	var tstamp = OS.get_ticks_msec()*0.001
+
+	while len(doppelgangerdelaystack) != 0 and doppelgangerdelaystack[0][0] < cumulativetime:
+		var dcf = doppelgangerdelaystack.pop_front()[1]
+		$RemotePlayers.nextcompressedframe(tstamp, "Doppelganger", dcf, tstamp)
+
+	framecount += 1
+	if framerateratereducer != 0 and (framecount%framerateratereducer) != 0:
+		return
+		
 	var cf = framefilter.CompressFrame(playerframedata(), false)
 	if len(cf) != 0:
 		cf[FI.CFI.TIMESTAMP] = tstamp
+		cf[FI.CFI.PREV_TIMESTAMP] = framefilter.currentvalues[FI.CFI.TIMESTAMP]
 		if NetworkGateway.networkID > 0:
 			cf[FI.CFI.ID] = NetworkGateway.networkID
 			NetworkGateway.rpc("gnextcompressedframe", cf)
+
 		if $RemotePlayers.has_node("Doppelganger"):
-			$RemotePlayers.nextcompressedframe(tstamp, "Doppelganger", cf)
-			
+			cf[FI.CFI.TIMESTAMP] += doppelgangertimeoffset
+			cf[FI.CFI.PREV_TIMESTAMP] += doppelgangertimeoffset
+			var simulatednetworkdelay = 0.1 + rand_range(0,delta/2)
+			if len(doppelgangerdelaystack) < 10:
+				doppelgangerdelaystack.push_back([cumulativetime + simulatednetworkdelay, cf])
+
+	framefilter.currentvalues[FI.CFI.TIMESTAMP] = tstamp

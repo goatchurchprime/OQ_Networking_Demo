@@ -17,5 +17,4 @@ var fiattributes = {
 }
 
 func _run():
-	for x in fiattributes:
-		print(fiattributes[x])
+	print(rand_range(0,1))

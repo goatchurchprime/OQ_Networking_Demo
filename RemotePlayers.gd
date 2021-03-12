@@ -2,7 +2,7 @@ extends Spatial
 
 var playerframestacks = { }
 
-func newremoteplayer(t1, nname, pdat):
+func newremoteplayer(t1, nname, pdat, tlocal):
 	var remoteplayer = get_node_or_null(nname)
 	if remoteplayer == null:
 		remoteplayer = preload("res://RemotePlayer.tscn").instance()
@@ -13,7 +13,7 @@ func newremoteplayer(t1, nname, pdat):
 		print("Adding remoteplayer: ", nname)
 	else:
 		print("** remoteplayer already exists: ", pdat["nname"])
-	playerframestacks[nname].setinitialframe(t1, pdat)
+	playerframestacks[nname].setinitialframe(t1, pdat, tlocal)
 	if nname == "Doppelganger":
 		var attributevalues = playerframestacks[nname].valuestack[0]
 		remoteplayer.transform = Transform(attributevalues[FI.CFI.XRBASIS], attributevalues[FI.CFI.XRORIGIN])
@@ -29,13 +29,14 @@ func removeremoteplayer(nname):
 	else:
 		print("** remoteplayer already removed: ", nname)
 	
-func nextcompressedframe(t1, nname, cf):
-	playerframestacks[nname].expandappendframe(t1, cf)
+func nextcompressedframe(t1, nname, cf, tlocal):
+	playerframestacks[nname].expandappendframe(t1, cf, tlocal)
 	
 func _process(delta):
-	var t = OS.get_ticks_msec()*0.001 - 0.1
+	var tlocal = OS.get_ticks_msec()*0.001
 	for nname in playerframestacks:
 		var remoteplayer = get_node(nname)
+		var t = tlocal - playerframestacks[nname].mintimeshift - playerframestacks[nname].furtherbacktime
 		var attributevalues = playerframestacks[nname].interpolatevalues(t)
 		if nname != "Doppelganger":
 			remoteplayer.transform = Transform(attributevalues[FI.CFI.XRBASIS], attributevalues[FI.CFI.XRORIGIN])

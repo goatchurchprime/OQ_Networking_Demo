@@ -147,7 +147,6 @@ func _connection_failed():
 	deferred_playerconnections.clear()
 	$ColorRect.color = Color.red
 
-
 func _player_connected(id):
 	if networkID == -1:
 		deferred_playerconnections.push_back(id)
@@ -170,16 +169,18 @@ func _player_disconnected(id):
 	RemotePlayersNode.removeremoteplayer("R%d"%id)
 
 remote func spawnintoremoteplayer(pdat):
+	var tlocal = OS.get_ticks_msec()*0.001
 	var id = pdat[FI.CFI.ID]
 	assert (remoteplayertimeoffsets.has(id))
 	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(pdat[FI.CFI.TIMESTAMP])
-	var remoteplayer = RemotePlayersNode.newremoteplayer(t1, "R%d"%id, pdat)
+	var remoteplayer = RemotePlayersNode.newremoteplayer(t1, "R%d"%id, pdat, tlocal)
 	remoteplayer.set_network_master(id)
 			
 remote func gnextcompressedframe(cf):
+	var tlocal = OS.get_ticks_msec()*0.001
 	var id = cf[FI.CFI.ID]
 	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FI.CFI.TIMESTAMP])
-	RemotePlayersNode.nextcompressedframe(t1, "R%d"%id, cf)
+	RemotePlayersNode.nextcompressedframe(t1, "R%d"%id, cf, tlocal)
 
 
 func _process(delta):
@@ -240,13 +241,13 @@ func _on_OptionButton_item_selected(ns):
 	if (ns != NETWORK_OPTIONS.AS_SERVER and networkID == 1):
 		_server_disconnected()
 
-
 func _on_Doppelganger_toggled(button_pressed):
 	if button_pressed:
 		var pdat = MainNode.playerinitdata()
 		pdat[FI.CFI.XRORIGIN] += Vector3(0,0,-2.0)
 		pdat[FI.CFI.XRBASIS] = FI.QuattoV3(FI.V3toQuat(pdat[FI.CFI.XRBASIS])*Quat(Vector3(0,1,0), PI))
-		var remoteplayer = RemotePlayersNode.newremoteplayer(OS.get_ticks_msec()*0.001, "Doppelganger", pdat)
+		var tlocal = OS.get_ticks_msec()*0.001
+		var remoteplayer = RemotePlayersNode.newremoteplayer(OS.get_ticks_msec()*0.001, "Doppelganger", pdat, tlocal+MainNode.doppelgangertimeoffset)
 	else:
 		RemotePlayersNode.removeremoteplayer("Doppelganger")
 		

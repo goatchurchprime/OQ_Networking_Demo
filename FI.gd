@@ -3,7 +3,9 @@ class_name FI
 enum CFI {
 	ID 				= -2,
 	TIMESTAMP 		= -1, 
-	
+	PREV_TIMESTAMP	= -3, 
+	LOCAL_TIMESTAMP	= -4, 
+		
 	XRORIGIN		= 0,
 	XRBASIS			= 1,
 	XRCAMERAORIGIN	= 2,
@@ -25,7 +27,7 @@ class FrameFilter:
 	var attributenames = { }   # superfluous
 	var attributedefs = { }
 	var attributeprecisions = { }
-	var currentvalues = { }
+	var currentvalues = { CFI.TIMESTAMP:0 }
 
 	func _init(fiattributes):
 		for i in fiattributes:
@@ -66,11 +68,13 @@ class FrameFilter:
 class FrameStack:
 	var attributedefs = { }
 	var valuestack = [ ]
-	const valuestackmaxlength = 60
+	var mintimeshift = 0
+	var furtherbacktime = 1.0
+	const VALUESTACKMAXLENGTH = 60
 
 	func _init(lattributedefs):
 		attributedefs = lattributedefs
-		var values0 = { CFI.TIMESTAMP: 0.0 }
+		var values0 = { CFI.TIMESTAMP: 0.0, CFI.LOCAL_TIMESTAMP: 0.0 }
 		for i in attributedefs:
 			var a = attributedefs[i]
 			if a == "V3":
@@ -90,9 +94,11 @@ class FrameStack:
 	static func V3toQuat(v):
 		return Quat(v.x, v.y, v.z, sqrt(max(0.0, 1.0 - v.length_squared())))
 		
-	func setinitialframe(t1, pdat):
+	func setinitialframe(t1, pdat, tlocal):
 		valuestack.clear()
-		var values1 = { CFI.TIMESTAMP:t1 }
+		var values1 = { CFI.TIMESTAMP:pdat[CFI.TIMESTAMP], CFI.LOCAL_TIMESTAMP:tlocal }
+		mintimeshift = tlocal - pdat[CFI.TIMESTAMP]
+		print("initial mintimeshift:", mintimeshift)
 		for i in attributedefs:
 			var a = attributedefs[i]
 			if i in pdat:
@@ -102,27 +108,28 @@ class FrameStack:
 				values1[i] = v1
 		valuestack.push_back(values1)
 		
-	func expandappendframe(t1, cf):
-		var values1 = { CFI.TIMESTAMP:t1 }
-		for i in range(len(attributedefs)):
+	func expandappendframe(t1, cf, tlocal):
+		if cf.has(CFI.PREV_TIMESTAMP) and valuestack[-1][CFI.TIMESTAMP] != cf[CFI.PREV_TIMESTAMP]:
+			var t1p = cf[CFI.PREV_TIMESTAMP]
+			assert (t1p > valuestack[-1][CFI.TIMESTAMP])
+			assert (t1p < cf[CFI.TIMESTAMP])
+			valuestack.push_back({ CFI.TIMESTAMP:t1p })
+		var values1 = { CFI.TIMESTAMP:cf[CFI.TIMESTAMP], CFI.LOCAL_TIMESTAMP:tlocal }
+
+		var timeshift = tlocal - cf[CFI.TIMESTAMP]
+		if timeshift < mintimeshift:
+			mintimeshift = timeshift
+			print("mintimeshift to:", timeshift)
+		
+		for i in attributedefs:
 			var a = attributedefs[i]
 			if i in cf:
 				var v1 = cf[i]
 				if a == "Q" or a == "B":
 					v1 = V3toQuat(v1)
 				values1[i] = v1
-				var j0 = len(valuestack) - 1
-				if valuestack[j0].get(i) == null:
-					while valuestack[j0].get(i) == null:
-						j0 -= 1
-					var t0 = valuestack[j0][CFI.TIMESTAMP]
-					var v0 = valuestack[j0][i]
-					for j in range(j0+1, len(valuestack)):
-						var lam = inverse_lerp(t0, t1, valuestack[j][CFI.TIMESTAMP])
-						var v = lerp(v0, v1, lam) if a == "V3" else v0.slerp(v1, lam)
-						valuestack[j][i] = v
 		valuestack.push_back(values1)
-		while len(valuestack) > valuestackmaxlength:
+		while len(valuestack) > VALUESTACKMAXLENGTH:
 			dropfront()
 		
 	func interpolatevalues(t):
@@ -130,7 +137,6 @@ class FrameStack:
 			dropfront()
 		var attributevalues = { }
 		var values0 = valuestack[0]
-		#assert (values0[0] <= t)
 		if len(valuestack) == 1 or t < values0[CFI.TIMESTAMP]:
 			for i in attributedefs:
 				var a = attributedefs[i]

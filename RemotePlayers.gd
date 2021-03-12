@@ -2,7 +2,7 @@ extends Spatial
 
 var playerframestacks = { }
 
-func newremoteplayer(t1, nname, pdat, tlocal):
+func newremoteplayer(nname, pdat, tlocal):
 	var remoteplayer = get_node_or_null(nname)
 	if remoteplayer == null:
 		remoteplayer = preload("res://RemotePlayer.tscn").instance()
@@ -13,7 +13,7 @@ func newremoteplayer(t1, nname, pdat, tlocal):
 		print("Adding remoteplayer: ", nname)
 	else:
 		print("** remoteplayer already exists: ", pdat["nname"])
-	playerframestacks[nname].setinitialframe(t1, pdat, tlocal)
+	playerframestacks[nname].setinitialframe(pdat, tlocal)
 	if nname == "Doppelganger":
 		var attributevalues = playerframestacks[nname].valuestack[0]
 		remoteplayer.transform = Transform(attributevalues[FI.CFI.XRBASIS], attributevalues[FI.CFI.XRORIGIN])
@@ -29,8 +29,8 @@ func removeremoteplayer(nname):
 	else:
 		print("** remoteplayer already removed: ", nname)
 	
-func nextcompressedframe(t1, nname, cf, tlocal):
-	playerframestacks[nname].expandappendframe(t1, cf, tlocal)
+func nextcompressedframe(nname, cf, tlocal):
+	playerframestacks[nname].expandappendframe(cf, tlocal)
 	
 func _process(delta):
 	var tlocal = OS.get_ticks_msec()*0.001

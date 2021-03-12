@@ -5,9 +5,9 @@
 
 [node name="NetworkGateway" type="Panel"]
 anchor_right = 0.692
-anchor_bottom = 0.252
+anchor_bottom = 0.292
 margin_right = 0.392029
-margin_bottom = 99.8
+margin_bottom = 75.8
 theme = ExtResource( 1 )
 script = ExtResource( 2 )
 __meta__ = {
@@ -41,7 +41,7 @@ margin_top = 41.7461
 margin_right = 587.599
 margin_bottom = 80.7461
 text = "Local network"
-items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null, "tunnelvr.goatchurch.org.uk", null, false, 4, null, "192.168.8.104", null, false, 4, null ]
+items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null ]
 selected = 2
 __meta__ = {
 "_edit_use_anchors_": false
@@ -53,6 +53,16 @@ margin_top = 96.7401
 margin_right = 235.748
 margin_bottom = 141.74
 text = "doppelganger"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StatusRec" type="RichTextLabel" parent="."]
+margin_left = 309.0
+margin_top = 101.0
+margin_right = 622.0
+margin_bottom = 196.0
+text = "*startup"
 __meta__ = {
 "_edit_use_anchors_": false
 }

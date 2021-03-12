@@ -26,8 +26,9 @@ onready var NetworkGateway = $OQ_UI2DCanvas/Viewport/NetworkGateway
 
 func _ready():
 	randomize()
-	$OQ_ARVROrigin.transform.origin.x += (randi()%20000)/10000.0 - 1.0
-	playercolour = Color.from_hsv((randi()%10000)/10000.0, 0.5 + (randi()%2222)/6666.0, 0.75)
+	$OQ_ARVROrigin.transform.origin.x += rand_range(-3, 3)
+	$OQ_ARVROrigin.transform.origin.z += rand_range(-1, 1)
+	playercolour = Color.from_hsv(rand_range(0, 1), rand_range(0.5, 0.86), 0.75)
 	print(ARVRServer.get_interfaces())
 	if OS.has_feature("Server"):
 		vrenabled = false
@@ -87,7 +88,7 @@ func _physics_process(delta):
 
 	while len(doppelgangerdelaystack) != 0 and doppelgangerdelaystack[0][0] < cumulativetime:
 		var dcf = doppelgangerdelaystack.pop_front()[1]
-		$RemotePlayers.nextcompressedframe(tstamp, "Doppelganger", dcf, tstamp)
+		$RemotePlayers.nextcompressedframe("Doppelganger", dcf, tstamp)
 
 	framecount += 1
 	if framerateratereducer != 0 and (framecount%framerateratereducer) != 0:

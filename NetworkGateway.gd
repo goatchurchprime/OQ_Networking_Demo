@@ -1,18 +1,24 @@
 extends Panel
 
-export var hostportnumber : int = 4546
+export var hostportnumber : int = 4547
 
 var remoteservers = [ "tunnelvr.goatchurch.org.uk", 
-					  "192.168.8.104 Quest"]
+					  "192.168.43.172 JPCSP",
+					  "192.168.8.104 Quest",
+					  "192.168.8.101 JPC"
+					]
 var multicastudpipnum = "255.255.255.255"
 const udpdiscoverybroadcasterperiod = 2.0
-var udpdiscoveryport = 4547
+var udpdiscoveryport = 4546
 
 enum NETWORK_OPTIONS {
 	AS_SERVER = 1,
 	LOCAL_NETWORK = 2,
 	FIXED_URL = 3,
 }
+
+# command for running locally on the unix partition
+# /mnt/c/Users/henry/godot/Godot_v3.2.3-stable_linux_server.64 --main-pack /mnt/c/Users/henry/godot/games/OQ_Networking_Demo/releases/OQ_Networking_Demo.pck
 
 onready var MainNode = get_node("/root/Main")
 onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
@@ -22,6 +28,7 @@ var udpdiscoveryreceivingserver = null
 var localipnumbers = ""
 var remoteplayertimeoffsets = { }
 var deferred_playerconnections = [ ]
+var remoteplayersconnected = [ ]
 var serverIPnumber = ""
 var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to client
 var uniqueinstancestring = ""
@@ -46,44 +53,6 @@ func _ready():
 		$NetworkOptionButton.select(NETWORK_OPTIONS.AS_SERVER)
 	_on_OptionButton_item_selected($NetworkOptionButton.selected)
 
-
-class RemoteTimeOffsetCalculator:
-	var relativetimeminmax 	= 0
-	var remotetimegapmaxmin = 0
-	var prevremotetime 		= 0
-	var reltimebatchcount 	= 0
-	var remotetimegapmin 	= 0
-	var relativetimemax 	= 0
-	var firstrelativetimenotset = true
-	var remotetimegap_dtmax = 0.8
-	var DnetworkID			= 0
-	
-	func _init(lDnetworkID):
-		DnetworkID = lDnetworkID
-		
-	func ConvertToLocal(tremote):
-		var tlocal = OS.get_ticks_msec()*0.001
-		var reltime = tlocal - tremote
-		if reltimebatchcount == 0 or reltime > relativetimemax:
-			relativetimemax = reltime
-		if reltimebatchcount > 0:
-			var remotetimegap = tremote - prevremotetime
-			if reltimebatchcount == 1 or remotetimegap < remotetimegapmin:
-				remotetimegapmin = remotetimegap
-		reltimebatchcount += 1
-		prevremotetime = tremote
-		if reltimebatchcount == 10:
-			if firstrelativetimenotset or relativetimemax < relativetimeminmax:
-				relativetimeminmax = relativetimemax
-			if firstrelativetimenotset or remotetimegapmin > remotetimegapmaxmin:
-				remotetimegapmaxmin = remotetimegapmin
-			reltimebatchcount = 0
-			if firstrelativetimenotset:
-				print(DnetworkID, " Relativetimeminmax: ", relativetimeminmax, "  ", remotetimegapmaxmin)
-				firstrelativetimenotset = false
-		if firstrelativetimenotset:
-			return tlocal
-		return tremote + relativetimeminmax
 
 func getLocalIPnumbers():
 	var localips = [ ]
@@ -117,7 +86,8 @@ func _input(event):
 		elif (event.scancode == KEY_G):
 			$Doppelganger.pressed = not $Doppelganger.pressed
 
-
+func updatestatusrec(ptxt):
+	$StatusRec.text = "%sNetworkID: %d\nRemotes: %s" % [ptxt, networkID, PoolStringArray(remoteplayersconnected).join(", ")]
 
 func _server_disconnected():
 	var ns = $NetworkOptionButton.selected
@@ -125,10 +95,11 @@ func _server_disconnected():
 	networkID = get_tree().get_network_unique_id()
 	assert (networkID == 0)
 	deferred_playerconnections.clear()
-	for id in remoteplayertimeoffsets.keys():
+	for id in remoteplayersconnected.duplicate():
 		_player_disconnected(id)
 	print("*** _server_disconnected ", networkID)
 	$ColorRect.color = Color.red if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns == NETWORK_OPTIONS.FIXED_URL) else Color.black
+	updatestatusrec("")
 
 func _connected_to_server():
 	networkID = get_tree().get_network_unique_id()
@@ -138,6 +109,7 @@ func _connected_to_server():
 		_player_connected(id)
 	deferred_playerconnections.clear()
 	$ColorRect.color = Color.green
+	updatestatusrec("")
 
 func _connection_failed():
 	print("_connection_failed ", networkID)
@@ -146,6 +118,7 @@ func _connection_failed():
 	networkID = 0
 	deferred_playerconnections.clear()
 	$ColorRect.color = Color.red
+	updatestatusrec("Connection failed\n")
 
 func _player_connected(id):
 	if networkID == -1:
@@ -154,47 +127,47 @@ func _player_connected(id):
 		return
 	print("_player_connected remote=", id)
 	assert (networkID >= 1)
-	assert (not remoteplayertimeoffsets.has(id))
-	remoteplayertimeoffsets[id] = RemoteTimeOffsetCalculator.new(networkID)
-	print("players_connected_list: ", remoteplayertimeoffsets)
+	assert (not remoteplayersconnected.has(id))
+	remoteplayersconnected.append(id)
+	print("players_connected_list: ", remoteplayersconnected)
 	var pdat = MainNode.playerinitdata()
 	pdat[FI.CFI.ID] = networkID 
 	rpc_id(id, "spawnintoremoteplayer", pdat)
+	updatestatusrec("")
 	
 func _player_disconnected(id):
 	print("_player_disconnected remote=", id)
-	assert (remoteplayertimeoffsets.has(id))
-	remoteplayertimeoffsets.erase(id)
-	print("players_connected_list: ", remoteplayertimeoffsets)
+	assert (remoteplayersconnected.has(id))
+	remoteplayersconnected.erase(id)
+	print("players_connected_list: ", remoteplayersconnected)
 	RemotePlayersNode.removeremoteplayer("R%d"%id)
+	updatestatusrec("")
 
 remote func spawnintoremoteplayer(pdat):
 	var tlocal = OS.get_ticks_msec()*0.001
 	var id = pdat[FI.CFI.ID]
-	assert (remoteplayertimeoffsets.has(id))
-	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(pdat[FI.CFI.TIMESTAMP])
-	var remoteplayer = RemotePlayersNode.newremoteplayer(t1, "R%d"%id, pdat, tlocal)
+	var remoteplayer = RemotePlayersNode.newremoteplayer("R%d"%id, pdat, tlocal)
 	remoteplayer.set_network_master(id)
 			
 remote func gnextcompressedframe(cf):
 	var tlocal = OS.get_ticks_msec()*0.001
 	var id = cf[FI.CFI.ID]
-	var t1 = remoteplayertimeoffsets[id].ConvertToLocal(cf[FI.CFI.TIMESTAMP])
-	RemotePlayersNode.nextcompressedframe(t1, "R%d"%id, cf, tlocal)
-
+	RemotePlayersNode.nextcompressedframe("R%d"%id, cf, tlocal)
 
 func _process(delta):
 	var ns = $NetworkOptionButton.selected
 	if ns == NETWORK_OPTIONS.AS_SERVER:
 		udpdiscoverybroadcasterperiodtimer -= delta
 		if udpdiscoverybroadcasterperiodtimer < 0 and localipnumbers != "":
-			var udpdiscoverybroadcaster = PacketPeerUDP.new()
-			udpdiscoverybroadcaster.connect_to_host(multicastudpipnum, udpdiscoveryport)
-			udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
-			print("put UDP onto ", multicastudpipnum)
-			udpdiscoverybroadcaster.close()
+			if not OS.has_feature("Server"):
+				var udpdiscoverybroadcaster = PacketPeerUDP.new()
+				udpdiscoverybroadcaster.connect_to_host(multicastudpipnum, udpdiscoveryport)
+				udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
+				print("put UDP onto ", multicastudpipnum)
+				udpdiscoverybroadcaster.close()
 
 			if networkID == 0:
+				print("creating server on port: ", hostportnumber)
 				var networkedmultiplayerenetserver = NetworkedMultiplayerENet.new()
 				var e = networkedmultiplayerenetserver.create_server(hostportnumber)
 				if e == 0:
@@ -203,10 +176,12 @@ func _process(delta):
 					assert (networkID == 1)
 					$ColorRect.color = Color.green
 				else:
-					print("networkedmultiplayerenet createserver Error: ", {ERR_CANT_CREATE:"ERR_CANT_CREATE"}.get(e, e))
+					print("networkedmultiplayerenet createserver Error: ", { ERR_CANT_CREATE:"ERR_CANT_CREATE" }.get(e, e))
 					print("*** is there a server running on this port already? ", hostportnumber)
 					$ColorRect.color = Color.red
+
 			udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
+
 
 	elif (ns == NETWORK_OPTIONS.LOCAL_NETWORK) and (udpdiscoveryreceivingserver != null) and networkID == 0:
 		udpdiscoveryreceivingserver.poll()
@@ -221,7 +196,7 @@ func _process(delta):
 	if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns >= NETWORK_OPTIONS.FIXED_URL) and (serverIPnumber != "") and networkID == 0:
 		var networkedmultiplayerenet = NetworkedMultiplayerENet.new()
 		var e = networkedmultiplayerenet.create_client(serverIPnumber, hostportnumber, 0, 0)
-		print("networkedmultiplayerenet createclient ", ("" if e else str(e)))
+		print("networkedmultiplayerenet createclient ", ("" if e else str(e)), " to: ", serverIPnumber)
 		get_tree().set_network_peer(networkedmultiplayerenet)
 		$ColorRect.color = Color.yellow
 		networkID = -1
@@ -236,7 +211,7 @@ func _on_OptionButton_item_selected(ns):
 		udpdiscoveryreceivingserver = null
 
 	if ns >= NETWORK_OPTIONS.FIXED_URL:
-		serverIPnumber = $NetworkOptionButton.get_item_text(ns)
+		serverIPnumber = $NetworkOptionButton.get_item_text(ns).split(" ", 1)[0]
 
 	if (ns != NETWORK_OPTIONS.AS_SERVER and networkID == 1):
 		_server_disconnected()
@@ -247,7 +222,7 @@ func _on_Doppelganger_toggled(button_pressed):
 		pdat[FI.CFI.XRORIGIN] += Vector3(0,0,-2.0)
 		pdat[FI.CFI.XRBASIS] = FI.QuattoV3(FI.V3toQuat(pdat[FI.CFI.XRBASIS])*Quat(Vector3(0,1,0), PI))
 		var tlocal = OS.get_ticks_msec()*0.001
-		var remoteplayer = RemotePlayersNode.newremoteplayer(OS.get_ticks_msec()*0.001, "Doppelganger", pdat, tlocal+MainNode.doppelgangertimeoffset)
+		var remoteplayer = RemotePlayersNode.newremoteplayer("Doppelganger", pdat, tlocal+MainNode.doppelgangertimeoffset)
 	else:
 		RemotePlayersNode.removeremoteplayer("Doppelganger")
 		

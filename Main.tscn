@@ -49,6 +49,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0958182, 1.1261, 0.562169 )
 
 [node name="Feature_VRSimulator" parent="OQ_ARVROrigin" instance=ExtResource( 7 )]
 visible = false
+info_label_visible = false
 
 [node name="Locomotion_Stick" parent="OQ_ARVROrigin" instance=ExtResource( 8 )]
 

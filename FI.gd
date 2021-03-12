@@ -94,7 +94,7 @@ class FrameStack:
 	static func V3toQuat(v):
 		return Quat(v.x, v.y, v.z, sqrt(max(0.0, 1.0 - v.length_squared())))
 		
-	func setinitialframe(t1, pdat, tlocal):
+	func setinitialframe(pdat, tlocal):
 		valuestack.clear()
 		var values1 = { CFI.TIMESTAMP:pdat[CFI.TIMESTAMP], CFI.LOCAL_TIMESTAMP:tlocal }
 		mintimeshift = tlocal - pdat[CFI.TIMESTAMP]
@@ -108,11 +108,11 @@ class FrameStack:
 				values1[i] = v1
 		valuestack.push_back(values1)
 		
-	func expandappendframe(t1, cf, tlocal):
+	func expandappendframe(cf, tlocal):
 		if cf.has(CFI.PREV_TIMESTAMP) and valuestack[-1][CFI.TIMESTAMP] != cf[CFI.PREV_TIMESTAMP]:
 			var t1p = cf[CFI.PREV_TIMESTAMP]
-			assert (t1p > valuestack[-1][CFI.TIMESTAMP])
-			assert (t1p < cf[CFI.TIMESTAMP])
+			#assert (t1p > valuestack[-1][CFI.TIMESTAMP])
+			#assert (t1p < cf[CFI.TIMESTAMP])
 			valuestack.push_back({ CFI.TIMESTAMP:t1p })
 		var values1 = { CFI.TIMESTAMP:cf[CFI.TIMESTAMP], CFI.LOCAL_TIMESTAMP:tlocal }
 

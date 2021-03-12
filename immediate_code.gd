@@ -17,4 +17,7 @@ var fiattributes = {
 }
 
 func _run():
-	print(rand_range(0,1))
+	var a = "asdasd1 2v 12"
+	print(a.split(" ", 1)[0])
+	print(a)
+	

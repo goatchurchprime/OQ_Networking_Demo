@@ -89,6 +89,7 @@ material = SubResource( 4 )
 
 [node name="visorline" type="MeshInstance" parent="HeadCam"]
 transform = Transform( 2.65432e-14, -1.62921e-07, 1, -1, -1.62921e-07, 0, 1.62921e-07, -1, -1.62921e-07, 1.4521e-08, 0.0545774, -0.0445647 )
+visible = false
 mesh = SubResource( 5 )
 material/0 = SubResource( 6 )
 

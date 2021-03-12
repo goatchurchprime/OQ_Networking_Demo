@@ -19,6 +19,20 @@ Fetch the other two assets from the assetlibrary
 * `Godot Oculus Mobile Plugin` <-- **ONLY THE addons DIRECTORY**
 * `OpenVR module`              <-- **ONLY THE addons DIRECTORY** (not nessary if you have no PCVR)
   
+  
+# Release instructions:
+
+On the tunnelvr.goatchurch.org.uk server, use a screen instance and do:
+
+> wget https://github.com/goatchurchprime/OQ_Networking_Demo/releases/download/v0.1.1/OQ_Networking_Demo.pck
+
+> ./Godot_v3.2.3-stable_linux_headless.64 --main-pack OQ_Networking_Demo.pck
 
 
+When running you can select server mode or leave as local network mode and it will discover 
+a local server instance using UDP broadcasting.
+
+Or connect to a gloabl server like tunnelvr.goatchurch.org.uk
+
+Your motions will be compressed and delayed by one second.
   

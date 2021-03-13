@@ -7,22 +7,24 @@ Networking VR players using OQ toolkit to force reuse of code
 The main dependency is on the `Oculus Quest VR Toolkit`:
    https://github.com/NeoSpark314/godot_oculus_quest_toolkit/tree/master/OQ_Toolkit
 
-But there are also dependencies on `Godot Oculus Mobile Plugin` and `OpenVR module`
+The source code of this is small, so it has been duplicated into this repository
 
-As there needed to be some edits, I have included the dependency on the godot_oculus_quest_toolkit.  
-The differences can seen by running:
-> diff OQ_Networking_Demo/OQ_Toolkit/ godot_oculus_quest_toolkit/OQ_Toolkit/
+The other dependencies you need to fetch from the AssetLib in order to run this 
+are `Godot Oculus Mobile Plugin` and `OpenVR module`  
 
-* *Put OQ_Toolkit/vr_autoload.gd into the Project AutoLoad as vr_autoload*
+Fetch these, but only install the parts that are in the `addons` directory.
 
-Fetch the other two assets from the assetlibrary
-* `Godot Oculus Mobile Plugin` <-- **ONLY THE addons DIRECTORY**
-* `OpenVR module`              <-- **ONLY THE addons DIRECTORY** (not nessary if you have no PCVR)
-  
-  
-# Release instructions:
+# Deployment instructions:
 
-On the tunnelvr.goatchurch.org.uk server, use a screen instance and do:
+If you want to run this on a PC without VR being initialized, look for the `Vrenabled` flag 
+on the `Main` node.  You can easily toggle between the options on the dropdown menu by hitting 
+1 for server mode, 2 for local networ, and 3 to connect to the `tunnelvr.godot.org.uk`.  
+
+This last one is what you connect to if you want to demonstrate connecting between computers on 
+on different local area networks.
+
+To install onto the tunnelvr.goatchurch.org.uk server (or any other linux box on the net), 
+use a screen instance and do:
 
 > wget https://github.com/goatchurchprime/OQ_Networking_Demo/releases/download/v0.1.1/OQ_Networking_Demo.pck
 
@@ -32,7 +34,13 @@ On the tunnelvr.goatchurch.org.uk server, use a screen instance and do:
 When running you can select server mode or leave as local network mode and it will discover 
 a local server instance using UDP broadcasting.
 
-Or connect to a gloabl server like tunnelvr.goatchurch.org.uk
+Or connect to a global server like tunnelvr.goatchurch.org.uk
 
-Your motions will be compressed and delayed by one second.
+Your motions will be compressed and delayed by one second for the moment.
+
+# Testing
+
+The Doppelganger option (hit G on the keyboard) collects your motions and replays them to an avatar copy without 
+going through the network.  However, it simulates delayed and dropped packets to test the 
+robustness of the algorithms.
   

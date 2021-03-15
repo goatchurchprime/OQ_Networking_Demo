@@ -35,7 +35,6 @@ albedo_texture = SubResource( 5 )
 
 [node name="Main" type="Spatial"]
 script = ExtResource( 3 )
-vrenabled = false
 
 [node name="OQ_VisibilityToggle" parent="." instance=ExtResource( 6 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.6, -0.65 )

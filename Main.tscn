@@ -63,10 +63,15 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -0.4 )
 [node name="NetworkGateway" parent="OQ_UI2DCanvas" instance=ExtResource( 11 )]
 anchor_right = 0.696
 anchor_bottom = 0.377
-margin_left = 4.0
+margin_left = 6.51984
 margin_top = -3.0
-margin_right = 0.295959
+margin_right = 2.8158
 margin_bottom = -0.199997
+
+[node name="Cube2" type="MeshInstance" parent="OQ_UI2DCanvas"]
+transform = Transform( 0.00731286, 0, 0.999974, 0, 1, 0, -0.999974, 0, 0.00731286, -0.145016, -0.55064, -0.472608 )
+mesh = SubResource( 1 )
+material/0 = null
 
 [node name="RemotePlayers" type="Spatial" parent="."]
 script = ExtResource( 14 )

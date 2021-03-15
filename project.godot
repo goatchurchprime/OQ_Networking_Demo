@@ -48,21 +48,6 @@ _global_script_classes=[ {
 "class": "OQClass_ToolGrabLinearController",
 "language": "GDScript",
 "path": "res://OQ_Toolkit/OQ_Classes/OQClass_ToolGrabLinearController.gd"
-}, {
-"base": "OculusTracker",
-"class": "OculusHandTracker",
-"language": "GDScript",
-"path": "res://addons/godot_ovrmobile/example_scenes/oculus_hand_tracker.gd"
-}, {
-"base": "OculusTracker",
-"class": "OculusTouchController",
-"language": "GDScript",
-"path": "res://addons/godot_ovrmobile/example_scenes/oculus_touch_controller.gd"
-}, {
-"base": "ARVRController",
-"class": "OculusTracker",
-"language": "GDScript",
-"path": "res://addons/godot_ovrmobile/example_scenes/oculus_tracker.gd"
 } ]
 _global_script_class_icons={
 "FI": "",
@@ -72,10 +57,7 @@ _global_script_class_icons={
 "OQClass_GrabbableToolPart": "",
 "OQClass_Tool": "",
 "OQClass_ToolGrabController": "",
-"OQClass_ToolGrabLinearController": "",
-"OculusHandTracker": "",
-"OculusTouchController": "",
-"OculusTracker": ""
+"OQClass_ToolGrabLinearController": ""
 }
 
 [application]
@@ -95,7 +77,7 @@ gdscript/warnings/return_value_discarded=false
 
 [gdnative]
 
-singletons=[ "res://addons/godot_ovrmobile/godot_ovrmobile.gdnlib" ]
+singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib", "res://addons/godot_ovrmobile/godot_ovrmobile.gdnlib" ]
 
 [rendering]
 

@@ -22,8 +22,7 @@ var fiattributes = {
 }
 var framefilter = FI.FrameFilter.new(fiattributes)
 
-onready var NetworkGateway = $OQ_UI2DCanvas/Viewport/NetworkGateway
-
+onready var NetworkGateway = $OQ_ARVROrigin/OQ_LeftController/OQ_VisibilityToggle/OQ_UI2DCanvas.ui_control
 func _ready():
 	randomize()
 	$OQ_ARVROrigin.transform.origin.x += rand_range(-3, 3)

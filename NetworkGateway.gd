@@ -13,6 +13,7 @@ var udpdiscoveryport = 4546
 
 enum NETWORK_OPTIONS {
 	AS_SERVER = 1,
+	AS_SERVER = 1,
 	LOCAL_NETWORK = 2,
 	FIXED_URL = 3,
 }
@@ -24,6 +25,8 @@ onready var MainNode = get_node("/root/Main")
 onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
 var udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
 var udpdiscoveryreceivingserver = null
+onready var serverbroadcastsudp = not OS.has_feature("Server")
+
 
 var localipnumbers = ""
 var remoteplayertimeoffsets = { }
@@ -68,21 +71,16 @@ func getLocalIPnumbers():
 
 func _input(event):
 	if event is InputEventKey and event.pressed:
-		if (event.scancode == KEY_0):
-			$NetworkOptionButton.select(0)
-			_on_OptionButton_item_selected(0)
-		elif (event.scancode == KEY_1):
-			$NetworkOptionButton.select(1)
-			_on_OptionButton_item_selected(1)
-		elif (event.scancode == KEY_2):
-			$NetworkOptionButton.select(2)
-			_on_OptionButton_item_selected(2)
-		elif (event.scancode == KEY_3):
-			$NetworkOptionButton.select(3)
-			_on_OptionButton_item_selected(3)
-		elif (event.scancode == KEY_4):
-			$NetworkOptionButton.select(4)
-			_on_OptionButton_item_selected(4)
+		var bsel = -1
+		if (event.scancode == KEY_0):	bsel = 0
+		elif (event.scancode == KEY_1):	bsel = 1
+		elif (event.scancode == KEY_2):	bsel = 2
+		elif (event.scancode == KEY_3):	bsel = 3
+		elif (event.scancode == KEY_4):	bsel = 4
+
+		if bsel != -1 and $NetworkOptionButton.selected != bsel:
+			$NetworkOptionButton.select(bsel)
+			_on_OptionButton_item_selected(bsel)
 		elif (event.scancode == KEY_G):
 			$Doppelganger.pressed = not $Doppelganger.pressed
 
@@ -156,10 +154,11 @@ remote func gnextcompressedframe(cf):
 
 func _process(delta):
 	var ns = $NetworkOptionButton.selected
+
 	if ns == NETWORK_OPTIONS.AS_SERVER:
 		udpdiscoverybroadcasterperiodtimer -= delta
 		if udpdiscoverybroadcasterperiodtimer < 0 and localipnumbers != "":
-			if not OS.has_feature("Server"):
+			if serverbroadcastsudp:  
 				var udpdiscoverybroadcaster = PacketPeerUDP.new()
 				udpdiscoverybroadcaster.connect_to_host(multicastudpipnum, udpdiscoveryport)
 				udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
@@ -205,16 +204,18 @@ func _on_OptionButton_item_selected(ns):
 	if ns == NETWORK_OPTIONS.LOCAL_NETWORK:
 		udpdiscoveryreceivingserver = UDPServer.new()
 		udpdiscoveryreceivingserver.listen(udpdiscoveryport)
-
 	elif udpdiscoveryreceivingserver != null:
 		udpdiscoveryreceivingserver.stop()
 		udpdiscoveryreceivingserver = null
 
+	if networkID != 0:
+		if get_tree().get_network_peer() != null:
+			print("closing connection ", networkID, get_tree().get_network_peer())
+		_server_disconnected()
+
 	if ns >= NETWORK_OPTIONS.FIXED_URL:
 		serverIPnumber = $NetworkOptionButton.get_item_text(ns).split(" ", 1)[0]
 
-	if (ns != NETWORK_OPTIONS.AS_SERVER and networkID == 1):
-		_server_disconnected()
 
 func _on_Doppelganger_toggled(button_pressed):
 	if button_pressed:

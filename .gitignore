@@ -130,3 +130,30 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+CONTRIBUTORS.md
+addons/godot_ovrmobile/OvrVrApiTypes.gd
+.gitattributes
+addons/godot_ovrmobile/example_scenes/arvr_origin.gd
+addons/godot_ovrmobile/example_scenes/arvr_origin.tscn
+addons/godot_ovrmobile/example_scenes/hand_pointer.tscn
+addons/godot_ovrmobile/example_scenes/left_hand_model.glb
+addons/godot_ovrmobile/example_scenes/oculus_hand_tracker.gd
+addons/godot_ovrmobile/example_scenes/oculus_touch_controller.gd
+addons/godot_ovrmobile/example_scenes/oculus_tracker.gd
+addons/godot_ovrmobile/example_scenes/ray_cast_with_reticle.gd
+addons/godot_ovrmobile/example_scenes/ray_reticle.tscn
+addons/godot_ovrmobile/example_scenes/right_hand_model.glb
+addons/godot_ovrmobile/example_scenes/touch_controller.dae
+addons/godot_ovrmobile/godot_ovrmobile.gdnlib
+addons/godot_ovrmobile/libs/arm64-v8a/LICENSE.txt
+addons/godot_ovrmobile/libs/armeabi-v7a/LICENSE.txt
+addons/godot_ovrmobile/OvrDisplay.gdns
+addons/godot_ovrmobile/OvrGuardianSystem.gdns
+addons/godot_ovrmobile/OvrHandTracking.gdns
+addons/godot_ovrmobile/OvrInitConfig.gdns
+addons/godot_ovrmobile/OvrInput.gdns
+addons/godot_ovrmobile/OvrPerformance.gdns
+addons/godot_ovrmobile/OvrSystem.gdns
+addons/godot_ovrmobile/OvrTrackingTransform.gdns
+addons/godot_ovrmobile/OvrVrApiProxy.gdns
+addons/godot_ovrmobile/OvrUtilities.gdns

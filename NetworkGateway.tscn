@@ -15,10 +15,10 @@ __meta__ = {
 }
 
 [node name="NetworkLabel" type="Label" parent="."]
-margin_left = 7.29352
-margin_top = 48.0
-margin_right = 159.294
-margin_bottom = 81.0
+margin_left = 5.8793
+margin_top = 9.10912
+margin_right = 157.88
+margin_bottom = 42.1091
 rect_pivot_offset = Vector2( 103.791, -1.38985 )
 text = "Connection:"
 __meta__ = {
@@ -37,20 +37,20 @@ __meta__ = {
 }
 
 [node name="ColorRect" type="ColorRect" parent="."]
-margin_left = 159.294
-margin_top = 34.2263
-margin_right = 552.294
-margin_bottom = 89.2263
+margin_left = 168.0
+margin_top = 4.0
+margin_right = 557.0
+margin_bottom = 59.0
 color = Color( 0, 0, 0, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="NetworkOptionButton" type="OptionButton" parent="."]
-margin_left = 167.294
-margin_top = 41.7461
-margin_right = 542.294
-margin_bottom = 80.7461
+margin_left = 175.1
+margin_top = 11.029
+margin_right = 550.1
+margin_bottom = 50.029
 text = "Network off"
 items = [ "Network off", null, false, 0, null, "As server", null, false, 1, null, "Local network", null, false, 3, null ]
 selected = 0
@@ -59,13 +59,104 @@ __meta__ = {
 }
 
 [node name="Doppelganger" type="CheckBox" parent="."]
-margin_left = 23.0
-margin_top = 144.0
-margin_right = 226.001
-margin_bottom = 189.0
+margin_left = 11.1812
+margin_top = 61.4998
+margin_right = 214.182
+margin_bottom = 106.5
 text = "doppelganger"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PlayerList" type="OptionButton" parent="."]
+margin_left = 237.0
+margin_top = 68.0045
+margin_right = 549.0
+margin_bottom = 107.005
+text = "me"
+items = [ "me", null, false, 0, null ]
+selected = 0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="InterpdelayLabel" type="Label" parent="."]
+margin_left = 13.5782
+margin_top = 101.917
+margin_right = 165.579
+margin_bottom = 134.917
+rect_pivot_offset = Vector2( 103.791, -1.38985 )
+text = "Interpdelay:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Interpdelay" type="HSlider" parent="."]
+margin_left = 233.149
+margin_top = 114.4
+margin_right = 545.149
+margin_bottom = 132.4
+max_value = 1000.0
+value = 300.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DoppelgangerPanel" type="Panel" parent="."]
+visible = false
+margin_left = 9.0
+margin_top = 140.0
+margin_right = 557.0
+margin_bottom = 218.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NetdelayLabel" type="Label" parent="DoppelgangerPanel"]
+margin_left = 6.53655
+margin_top = -0.820953
+margin_right = 194.537
+margin_bottom = 32.179
+rect_pivot_offset = Vector2( 103.791, -1.38985 )
+text = "Netdelaysimul:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Netdelay" type="HSlider" parent="DoppelgangerPanel"]
+margin_left = 222.215
+margin_top = 11.233
+margin_right = 534.215
+margin_bottom = 29.233
+max_value = 1000.0
+value = 100.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NetdroprateLabel" type="Label" parent="DoppelgangerPanel"]
+margin_left = 7.95076
+margin_top = 33.8273
+margin_right = 195.951
+margin_bottom = 66.8273
+rect_pivot_offset = Vector2( 103.791, -1.38985 )
+text = "Netdropsimul:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Netdroprate" type="HSlider" parent="DoppelgangerPanel"]
+margin_left = 221.508
+margin_top = 41.6386
+margin_right = 533.508
+margin_bottom = 59.6386
+max_value = 1000.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 [connection signal="item_selected" from="NetworkOptionButton" to="." method="_on_OptionButton_item_selected"]
 [connection signal="toggled" from="Doppelganger" to="." method="_on_Doppelganger_toggled"]
+[connection signal="item_selected" from="PlayerList" to="." method="_on_OptionButton_item_selected"]
+[connection signal="value_changed" from="Interpdelay" to="." method="_on_Interpdelay_value_changed"]
+[connection signal="value_changed" from="DoppelgangerPanel/Netdelay" to="." method="_on_Interpdelay_value_changed"]
+[connection signal="value_changed" from="DoppelgangerPanel/Netdroprate" to="." method="_on_Interpdelay_value_changed"]

@@ -118,6 +118,16 @@ func _connection_failed():
 	$ColorRect.color = Color.red
 	updatestatusrec("Connection failed\n")
 
+func updateplayerlist():
+	var plp = $PlayerList.get_item_text($PlayerList.selected) 
+	$PlayerList.clear()
+	$PlayerList.add_item("me")
+	$PlayerList.selected = 0
+	for remoteplayer in RemotePlayersNode.get_children():
+		$PlayerList.add_item(remoteplayer.get_name())
+		if plp == remoteplayer.get_name():
+			$PlayerList.selected = $PlayerList.get_item_count() - 1
+
 func _player_connected(id):
 	if networkID == -1:
 		deferred_playerconnections.push_back(id)
@@ -132,6 +142,7 @@ func _player_connected(id):
 	pdat[FI.CFI.ID] = networkID 
 	rpc_id(id, "spawnintoremoteplayer", pdat)
 	updatestatusrec("")
+	updateplayerlist()
 	
 func _player_disconnected(id):
 	print("_player_disconnected remote=", id)
@@ -140,6 +151,7 @@ func _player_disconnected(id):
 	print("players_connected_list: ", remoteplayersconnected)
 	RemotePlayersNode.removeremoteplayer("R%d"%id)
 	updatestatusrec("")
+	updateplayerlist()
 
 remote func spawnintoremoteplayer(pdat):
 	var tlocal = OS.get_ticks_msec()*0.001
@@ -219,12 +231,21 @@ func _on_OptionButton_item_selected(ns):
 
 func _on_Doppelganger_toggled(button_pressed):
 	if button_pressed:
+		$DoppelgangerPanel.visible = true
 		var pdat = MainNode.playerinitdata()
 		pdat[FI.CFI.XRORIGIN] += Vector3(0,0,-2.0)
 		pdat[FI.CFI.XRBASIS] = FI.QuattoV3(FI.V3toQuat(pdat[FI.CFI.XRBASIS])*Quat(Vector3(0,1,0), PI))
 		var tlocal = OS.get_ticks_msec()*0.001
 		var remoteplayer = RemotePlayersNode.newremoteplayer("Doppelganger", pdat, tlocal+MainNode.doppelgangertimeoffset)
+		RemotePlayersNode.playerframestacks["Doppelganger"].furtherbacktime = $DoppelgangerPanel/Netdelay.value/1000
 	else:
+		$DoppelgangerPanel.visible = false
 		RemotePlayersNode.removeremoteplayer("Doppelganger")
+	updateplayerlist()
+	
 		
-		
+func _on_Interpdelay_value_changed(value):
+	var interpdelay = value/1000
+	for nname in RemotePlayersNode.playerframestacks:
+		RemotePlayersNode.playerframestacks[nname].furtherbacktime = interpdelay
+	$InterpdelayLabel.text = "Interpdelay %.2fs"%interpdelay

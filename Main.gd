@@ -81,6 +81,7 @@ var framerateratereducer = 5
 var framecount = 0
 var doppelgangertimeoffset = 10.0
 var doppelgangerdelaystack = [ ]
+const doppelgangerdelaystackmaxsize = 100
 var cumulativetime = 0.0
 func _physics_process(delta):
 	cumulativetime += delta
@@ -105,8 +106,10 @@ func _physics_process(delta):
 		if $RemotePlayers.has_node("Doppelganger"):
 			cf[FI.CFI.TIMESTAMP] += doppelgangertimeoffset
 			cf[FI.CFI.PREV_TIMESTAMP] += doppelgangertimeoffset
-			var simulatednetworkdelay = 0.1 + rand_range(0,delta/2)
-			if len(doppelgangerdelaystack) < 10:
+			var dnetdelay = NetworkGateway.get_node("DoppelgangerPanel/Netdelay").value*0.001
+			var dnetdroprate = NetworkGateway.get_node("DoppelgangerPanel/Netdelay").value/1000
+			var simulatednetworkdelay = rand_range(dnetdelay,dnetdelay*2)
+			if len(doppelgangerdelaystack) < doppelgangerdelaystackmaxsize and rand_range(0, 1) >= dnetdroprate:
 				doppelgangerdelaystack.push_back([cumulativetime + simulatednetworkdelay, cf])
 
 	framefilter.currentvalues[FI.CFI.TIMESTAMP] = tstamp

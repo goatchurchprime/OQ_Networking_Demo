@@ -271,9 +271,6 @@ func _update_hand_model(param_hand: ARVRController, param_model : Spatial, skele
 		if (ls > 0.0): param_model.scale = Vector3(ls, ls, ls);
 		
 		tracking_confidence = vr.ovrBaseAPI.get_hand_pose(param_hand.controller_id, _vrapi_bone_orientations);
-		#for i in range(24):
-		#	if _vrapi_bone_orientations[i].w < 0:
-		#		_vrapi_bone_orientations[i] = -_vrapi_bone_orientations[i]
 
 		if (tracking_confidence > 0.0):
 			param_model.visible = true;

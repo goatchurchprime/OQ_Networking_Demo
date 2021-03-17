@@ -17,6 +17,14 @@ func newremoteplayer(nname, pdat, tlocal):
 	if nname == "Doppelganger":
 		var attributevalues = playerframestacks[nname].valuestack[0]
 		remoteplayer.transform = Transform(attributevalues[FI.CFI.XRBASIS], attributevalues[FI.CFI.XRORIGIN])
+
+	var skeleton = remoteplayer.get_node("HandLeft/OculusQuestHand_Left/ArmatureLeft/Skeleton")
+	for i in range(0, skeleton.get_bone_count()):
+		var bone_rest = skeleton.get_bone_rest(i);
+		skeleton.set_bone_pose(i, Transform(bone_rest.basis))
+		bone_rest.basis = Basis()
+		skeleton.set_bone_rest(i, bone_rest)
+		
 	return remoteplayer
 	
 func removeremoteplayer(nname):
@@ -50,12 +58,12 @@ func _process(delta):
 		remoteplayer.get_node("HandLeft/OculusQuestHand_Left").visible = handleftvisible
 		if handleftvisible:
 			var skeleton = remoteplayer.get_node("HandLeft/OculusQuestHand_Left/ArmatureLeft/Skeleton")
-			var D_vrapi_bone_orientations = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left")._vrapi_bone_orientations
-			var orgskel = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left/OculusQuestHand_Left/ArmatureLeft/Skeleton")
 			remoteplayer.get_node("HandLeft/OculusQuestHand_Left").scale = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left/OculusQuestHand_Left").scale
-			#for i in range(19):
-				#skeleton.set_bone_pose(_vrapi2hand_bone_map[i], Transform(attributevalues[FI.CFI.XRLEFTHANDROOT+i]))
+			#var D_vrapi_bone_orientations = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left")._vrapi_bone_orientations
+			#var orgskel = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left/OculusQuestHand_Left/ArmatureLeft/Skeleton")
+			for i in range(19):
+				skeleton.set_bone_pose(_vrapi2hand_bone_map[i], Transform(attributevalues[FI.CFI.XRLEFTHANDROOT+i]))
 				#skeleton.set_bone_pose(_vrapi2hand_bone_map[i], Transform(D_vrapi_bone_orientations[i]));
-			for i in range(24):
-				skeleton.set_bone_pose(i, orgskel.get_bone_pose(i))
+			#for i in range(24):
+			#	skeleton.set_bone_pose(i, orgskel.get_bone_pose(i))
 				

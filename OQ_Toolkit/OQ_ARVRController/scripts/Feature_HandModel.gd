@@ -264,12 +264,17 @@ func _clear_bone_rest(skeleton : Skeleton):
 func _update_hand_model(param_hand: ARVRController, param_model : Spatial, skeleton: Skeleton):
 	# we check to level visibility here for the node to not update
 	# when the application (or the OQ_XXXController) set it invisible
+	#print("hhhh ", vr.ovrBaseAPI, visible)
 	if (vr.ovrBaseAPI && visible): # check if the hand tracking API was loaded
 		# scale of the hand model as reported by VrApi
 		var ls = vr.ovrBaseAPI.get_hand_scale(param_hand.controller_id);
 		if (ls > 0.0): param_model.scale = Vector3(ls, ls, ls);
 		
 		tracking_confidence = vr.ovrBaseAPI.get_hand_pose(param_hand.controller_id, _vrapi_bone_orientations);
+		#for i in range(24):
+		#	if _vrapi_bone_orientations[i].w < 0:
+		#		_vrapi_bone_orientations[i] = -_vrapi_bone_orientations[i]
+
 		if (tracking_confidence > 0.0):
 			param_model.visible = true;
 			for i in range(0, _vrapi2hand_bone_map.size()):

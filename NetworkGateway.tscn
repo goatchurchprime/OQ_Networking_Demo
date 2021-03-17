@@ -103,7 +103,6 @@ __meta__ = {
 }
 
 [node name="DoppelgangerPanel" type="Panel" parent="."]
-visible = false
 margin_left = 9.0
 margin_top = 140.0
 margin_right = 557.0
@@ -158,5 +157,3 @@ __meta__ = {
 [connection signal="toggled" from="Doppelganger" to="." method="_on_Doppelganger_toggled"]
 [connection signal="item_selected" from="PlayerList" to="." method="_on_OptionButton_item_selected"]
 [connection signal="value_changed" from="Interpdelay" to="." method="_on_Interpdelay_value_changed"]
-[connection signal="value_changed" from="DoppelgangerPanel/Netdelay" to="." method="_on_Interpdelay_value_changed"]
-[connection signal="value_changed" from="DoppelgangerPanel/Netdroprate" to="." method="_on_Interpdelay_value_changed"]

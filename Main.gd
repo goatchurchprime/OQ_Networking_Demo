@@ -1,30 +1,33 @@
 extends Spatial
 
 export var vrenabled = true
+
 var platform = ""
 var playercolour = Color(1.0, 1.0, 1.0)
 var guardianpoly = PoolVector3Array([Vector3(1,0,1), Vector3(1,0,-1), Vector3(-1,0,-1), Vector3(-1,0,1)])
 
-var ovr_init_config = null
-var ovr_performance = null
-var ovr_hand_tracking = null
-var ovr_guardian_system = null
-
-var fiattributes = { 
-	FI.CFI.XRORIGIN:		{"name":"xrorigin", "type":"V3", "precision":0.002},
-	FI.CFI.XRBASIS:			{"name":"xrbasis",  "type":"B",  "precision":0.005}, 
-	FI.CFI.XRCAMERAORIGIN:	{"name":"xrcameraorigin", "type":"V3", "precision":0.002}, 
-	FI.CFI.XRCAMERABASIS:	{"name":"xrcamerabasis",  "type":"B",  "precision":0.005},
-	FI.CFI.XRLEFTORIGIN:	{"name":"xrleftorigin", "type":"V3", "precision":0.002}, 
-	FI.CFI.XRLEFTBASIS:		{"name":"xrleftbasis",  "type":"B",  "precision":0.005}, 
-	FI.CFI.XRRIGHTORIGIN:	{"name":"xrrightorigin", "type":"V3", "precision":0.002}, 
-	FI.CFI.XRRIGHTBASIS:	{"name":"xrrightbasis",  "type":"B",  "precision":0.005}, 
-}
-var framefilter = FI.FrameFilter.new(fiattributes)
+var framefilter = null
 
 onready var NetworkGateway = $OQ_VisibilityToggle/OQ_UI2DCanvas.ui_control
 
 func _ready():
+	var fiattributes = { 
+		FI.CFI.XRORIGIN:		{"name":"xrorigin", "type":"V3", "precision":0.002},
+		FI.CFI.XRBASIS:			{"name":"xrbasis",  "type":"B",  "precision":0.005}, 
+		FI.CFI.XRCAMERAORIGIN:	{"name":"xrcameraorigin", "type":"V3", "precision":0.002}, 
+		FI.CFI.XRCAMERABASIS:	{"name":"xrcamerabasis",  "type":"B",  "precision":0.005},
+		FI.CFI.XRLEFTORIGIN:	{"name":"xrleftorigin", "type":"V3", "precision":0.002}, 
+		FI.CFI.XRLEFTBASIS:		{"name":"xrleftbasis",  "type":"B",  "precision":0.005}, 
+		FI.CFI.XRRIGHTORIGIN:	{"name":"xrrightorigin", "type":"V3", "precision":0.002}, 
+		FI.CFI.XRRIGHTBASIS:	{"name":"xrrightbasis",  "type":"B",  "precision":0.005}, 
+	}
+	fiattributes[FI.CFI.XRLEFTHANDCONF] = {"name":"xrlefthandconfidence", "type":"F", "precision":0.1}
+	#fiattributes[FI.CFI.XRRIGHTHANDCONF] = {"name":"xrrighthandconfidence", "type":"F", "precision":0.1}
+	for i in range(24):
+		fiattributes[FI.CFI.XRLEFTHANDROOT+i] = {"name":"xrlefthandbone%d"%i, "type":"Q", "precision":0.002}
+		#fiattributes[FI.CFI.XRRIGHTHANDROOT+i] = {"name":"xrrighthandbone%d"%i, "type":"Q", "precision":0.002}
+	framefilter = FI.FrameFilter.new(fiattributes)
+
 	randomize()
 	$OQ_ARVROrigin.transform.origin.x += rand_range(-3, 3)
 	$OQ_ARVROrigin.transform.origin.z += rand_range(-1, 1)
@@ -47,15 +50,10 @@ func _ready():
 		vr.initialize()
 		if not vr.inVR:
 			platform = "Pancake"
-		elif platform == "OVRMobile":
-			ovr_init_config = load("res://addons/godot_ovrmobile/OvrInitConfig.gdns").new()
-			ovr_performance = load("res://addons/godot_ovrmobile/OvrPerformance.gdns").new()
-			ovr_hand_tracking = load("res://addons/godot_ovrmobile/OvrHandTracking.gdns").new();
-			ovr_guardian_system = load("res://addons/godot_ovrmobile/OvrGuardianSystem.gdns").new();
-			guardianpoly = ovr_guardian_system.get_boundary_geometry()
 
-func playerframedata():
-	return { 
+
+func playerframedata(keepall):
+	var fd = { 
 		FI.CFI.XRORIGIN:		$OQ_ARVROrigin.transform.origin,
 		FI.CFI.XRBASIS:			$OQ_ARVROrigin.transform.basis, 
 		FI.CFI.XRCAMERAORIGIN:	$OQ_ARVROrigin/OQ_ARVRCamera.transform.origin, 
@@ -65,10 +63,20 @@ func playerframedata():
 		FI.CFI.XRRIGHTORIGIN:	$OQ_ARVROrigin/OQ_RightController.transform.origin, 
 		FI.CFI.XRRIGHTBASIS:	$OQ_ARVROrigin/OQ_RightController.transform.basis 
 	}
-	
+	if keepall or ($OQ_ARVROrigin/OQ_LeftController.visible and $OQ_ARVROrigin/OQ_LeftController.has_node("Feature_HandModel_Left") and \
+			$OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left.model.visible):
+		fd[FI.CFI.XRLEFTHANDCONF] = $OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left.tracking_confidence
+		for i in range(24):
+			fd[FI.CFI.XRLEFTHANDROOT+i] = $OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left._vrapi_bone_orientations[i]
+		print("finger ", fd[FI.CFI.XRLEFTHANDROOT+10])
+	else:
+		fd[FI.CFI.XRLEFTHANDCONF] = 0.0
+	return fd
+
+
 func playerinitdata():
 	var tstamp = OS.get_ticks_msec()*0.001
-	var pdat = framefilter.CompressFrame(playerframedata(), true)
+	var pdat = framefilter.CompressFrame(playerframedata(true), true)
 	pdat[FI.CFI.TIMESTAMP] = tstamp
 	pdat[FI.CFI.PREV_TIMESTAMP] = tstamp
 	pdat["platform"]  = platform
@@ -95,7 +103,7 @@ func _physics_process(delta):
 	if framerateratereducer != 0 and (framecount%framerateratereducer) != 0:
 		return
 		
-	var cf = framefilter.CompressFrame(playerframedata(), false)
+	var cf = framefilter.CompressFrame(playerframedata(false), false)
 	if len(cf) != 0:
 		cf[FI.CFI.TIMESTAMP] = tstamp
 		cf[FI.CFI.PREV_TIMESTAMP] = framefilter.currentvalues[FI.CFI.TIMESTAMP]

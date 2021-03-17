@@ -22,13 +22,6 @@ var _release_next_physics_step := false;
 var _cached_linear_velocity := Vector3(0,0,0); # required for kinematic grab
 var _cached_angular_velocity := Vector3(0,0,0);
 
-onready var materialorg = $CollisionShape/MeshInstance.get_surface_material(0)
-onready var materialgrabbed = get_node("../ColourGrabbed").get_surface_material(0)
-onready var materialstatic = get_node("../ColourStatic").get_surface_material(0)
-onready var materialgrabbedstatic = get_node("../ColourGrabbedStatic").get_surface_material(0)
-
-onready var releasedmode = mode
-
 func grab_init(node, grab_type: int) -> void:
 	target_node = node
 	_grab_type = grab_type
@@ -37,19 +30,12 @@ func grab_init(node, grab_type: int) -> void:
 	sleeping = false;
 	_orig_can_sleep = can_sleep;
 	can_sleep = false;
-	$CollisionShape/MeshInstance.set_surface_material(0, materialgrabbed if releasedmode == MODE_RIGID else materialgrabbedstatic)
-	mode = MODE_RIGID
-	
+
 func _release():
 	is_grabbed = false
 	target_node = null
 	can_sleep = _orig_can_sleep;
-	mode = releasedmode
-	$CollisionShape/MeshInstance.set_surface_material(0, materialorg if mode == MODE_RIGID else materialstatic)
 
-func triggerbutton():
-	releasedmode = MODE_RIGID if releasedmode == MODE_STATIC else MODE_STATIC
-	$CollisionShape/MeshInstance.set_surface_material(0, materialgrabbed if releasedmode == MODE_RIGID else materialgrabbedstatic)
 
 func grab_release() -> void:
 	if _grab_type == vr.GrabTypes.KINEMATIC:
@@ -58,6 +44,7 @@ func grab_release() -> void:
 		_cached_angular_velocity = angular_velocity;
 	else:
 		_release();
+	
 
 
 func orientation_follow(state, current_basis : Basis, target_basis : Basis) -> void:

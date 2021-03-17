@@ -16,8 +16,8 @@ var fiattributes = {
 	FI.CFI.XRRIGHTBASIS:	{"name":"xrrightbasis",  "type":"B",  "precision":0.005}, 
 }
 
+const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15, 16, 18, 19, 20, 21];
+
 func _run():
-	var a = "asdasd1 2v 12"
-	print(a.split(" ", 1)[0])
-	print(a)
+	print(len(_vrapi2hand_bone_map))
 	

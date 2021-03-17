@@ -32,6 +32,7 @@ func removeremoteplayer(nname):
 func nextcompressedframe(nname, cf, tlocal):
 	playerframestacks[nname].expandappendframe(cf, tlocal)
 	
+const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15, 16, 18, 19, 20, 21];
 func _process(delta):
 	var tlocal = OS.get_ticks_msec()*0.001
 	for nname in playerframestacks:
@@ -44,3 +45,17 @@ func _process(delta):
 		remoteplayer.get_node("HandLeft").transform = Transform(attributevalues[FI.CFI.XRLEFTBASIS], attributevalues[FI.CFI.XRLEFTORIGIN])
 		remoteplayer.get_node("HandRight").transform = Transform(attributevalues[FI.CFI.XRRIGHTBASIS], attributevalues[FI.CFI.XRRIGHTORIGIN])
 
+		var handleftvisible = (attributevalues[FI.CFI.XRLEFTHANDCONF] > 0.0)
+		remoteplayer.get_node("HandLeft/OculusQuestTouchController_Left").visible = not handleftvisible
+		remoteplayer.get_node("HandLeft/OculusQuestHand_Left").visible = handleftvisible
+		if handleftvisible:
+			var skeleton = remoteplayer.get_node("HandLeft/OculusQuestHand_Left/ArmatureLeft/Skeleton")
+			var D_vrapi_bone_orientations = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left")._vrapi_bone_orientations
+			var orgskel = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left/OculusQuestHand_Left/ArmatureLeft/Skeleton")
+			remoteplayer.get_node("HandLeft/OculusQuestHand_Left").scale = get_node("/root/Main/OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left/OculusQuestHand_Left").scale
+			#for i in range(19):
+				#skeleton.set_bone_pose(_vrapi2hand_bone_map[i], Transform(attributevalues[FI.CFI.XRLEFTHANDROOT+i]))
+				#skeleton.set_bone_pose(_vrapi2hand_bone_map[i], Transform(D_vrapi_bone_orientations[i]));
+			for i in range(24):
+				skeleton.set_bone_pose(i, orgskel.get_bone_pose(i))
+				

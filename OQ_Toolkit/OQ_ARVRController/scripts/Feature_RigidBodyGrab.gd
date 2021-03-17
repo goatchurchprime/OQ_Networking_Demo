@@ -22,7 +22,7 @@ onready var _hinge_joint : HingeJoint = $HingeJoint;
 export var reparent_mesh = false;
 export var hide_model_on_grab := false;
 
-	
+
 func just_grabbed() -> bool:
 	var did_grab: bool
 	
@@ -70,9 +70,7 @@ func _ready():
 func _physics_process(_dt):
 	# TODO: we will re-implement signals later on when we have compatability with the OQ simulator and recorder
 	update_grab()
-	if controller._button_just_pressed(vr.CONTROLLER_BUTTON.INDEX_TRIGGER):
-		if held_object:
-			held_object.triggerbutton()
+
 
 # TODO: we will re-implement signals later on when we have compatability with the OQ simulator and recorder
 func update_grab() -> void:

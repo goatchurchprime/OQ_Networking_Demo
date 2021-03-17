@@ -168,7 +168,7 @@ enum VR_CONTROLLER_TYPE {
 	WEBXR
 }
 
-var AXIS := {
+enum AXIS {
 	None = -1,
 	
 	LEFT_JOYSTICK_X = 0,
@@ -182,7 +182,7 @@ var AXIS := {
 	RIGHT_GRIP_TRIGGER = 3 + 16,
 }
 
-var CONTROLLER_AXIS := {
+enum CONTROLLER_AXIS {
 	None = -1,
 	
 	JOYSTICK_X = 0,
@@ -192,7 +192,7 @@ var CONTROLLER_AXIS := {
 }
 
 # the individual buttons directly identified left or right controller
-var BUTTON := {
+enum BUTTON {
 	None = -1,
 
 	Y = 1,
@@ -226,7 +226,7 @@ var BUTTON := {
 
 
 # Button list mapping to both controllers (needed for actions assigned to specific controllers instead of global)
-const CONTROLLER_BUTTON := {
+enum CONTROLLER_BUTTON {
 	None = -1,
 
 	YB = 1,
@@ -396,6 +396,8 @@ func _initialize_OVR_API():
 	else: log_error("Failed to load OvrVrApiProxy.gdns");
 	
 	log_info(str("    Quest Supported display refresh rates: ", get_supported_display_refresh_rates()));
+	#log_info(str("      is_oculus_quest_1_device: ", is_oculus_quest_1_device()));
+	#log_info(str("      is_oculus_quest_2_device: ", is_oculus_quest_2_device()));
 
 
 # When the android application gets paused it will destroy the VR context
@@ -603,6 +605,19 @@ func set_default_layer_color_scale(color : Color):
 	else:
 		oculus_mobile_settings_cache["default_layer_color_scale"] = color;
 		return ovrUtilities.set_default_layer_color_scale(color);
+
+
+func is_oculus_quest_1_device():
+	if (!ovrUtilities):
+		return false;
+	else:
+		return ovrUtilities.is_oculus_quest_1_device();
+	
+func is_oculus_quest_2_device():
+	if (!ovrUtilities):
+		return false;
+	else:
+		return ovrUtilities.is_oculus_quest_2_device();
 
 
 func set_extra_latency_mode(latency_mode):
@@ -864,7 +879,10 @@ func initialize(initialize_vr = true):
 		if arvr_oculus_interface.initialize():
 			active_arvr_interface_name = "Oculus";
 			get_viewport().arvr = true;
-			Engine.target_fps = 80 # TODO: this is headset dependent (RiftS == 80)=> figure out how to get this info at runtime
+			# Oculus on PC appears to select the correct refresh rate automatically.
+			# Rift and Quest 2 via Link can handle 90 Hz, but Quest 1 via link and Rift S will run at 72 and 80 respectively.
+			# Setting this below 90 will cap Q2 and Rift to what ever that is set to which is not ideal.
+			Engine.target_fps = 90
 			OS.vsync_enabled = false;
 			inVR = true;
 			log_info("  Success initializing Oculus Interface.");

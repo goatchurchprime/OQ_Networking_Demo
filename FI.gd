@@ -6,14 +6,19 @@ enum CFI {
 	PREV_TIMESTAMP	= -3, 
 	LOCAL_TIMESTAMP	= -4, 
 		
-	XRORIGIN		= 0,
-	XRBASIS			= 1,
-	XRCAMERAORIGIN	= 2,
-	XRCAMERABASIS	= 3,
-	XRLEFTORIGIN	= 4,
-	XRLEFTBASIS		= 5,
-	XRRIGHTORIGIN	= 6,
-	XRRIGHTBASIS	= 7
+	XRORIGIN		= 100,
+	XRBASIS			= 101,
+	XRCAMERAORIGIN	= 102,
+	XRCAMERABASIS	= 103,
+	XRLEFTORIGIN	= 104,
+	XRLEFTBASIS		= 105,
+	XRRIGHTORIGIN	= 106,
+	XRRIGHTBASIS	= 107, 
+	
+	XRLEFTHANDROOT  = 200,
+	XRLEFTHANDCONF  = 250,
+	XRRIGHTHANDROOT = 300
+	XRRIGHTHANDCONF = 350
 }
 
 static func QuattoV3(q):
@@ -39,16 +44,17 @@ class FrameFilter:
 				currentvalues[i] = Vector3() 
 			elif a["type"] == "Q" or a["type"] == "B":
 				currentvalues[i] = Quat() 
+			elif a["type"] == "F":
+				currentvalues[i] = 0.0 
 			else:
 				assert (false)
 
 	static func QuattoV3(q):
 		return Vector3(q.x, q.y, q.z)*(-1 if q.w < 0 else 1)
-	
 			
 	func CompressFrame(attributevalues, keepall):
 		var cf = { }
-		for i in attributedefs:
+		for i in attributevalues:
 			var a = attributedefs[i]
 			if a == "V3":
 				var vdiff = attributevalues[i] - currentvalues[i]
@@ -61,9 +67,13 @@ class FrameFilter:
 				if keepall or 1 - qdiff.w > attributeprecisions[i]:
 					currentvalues[i] = aq
 					cf[i] = QuattoV3(aq)
+			elif a == "F":
+				var vdiff = attributevalues[i] - currentvalues[i]
+				if keepall or vdiff > attributeprecisions[i]:
+					currentvalues[i] = attributevalues[i]
+					cf[i] = attributevalues[i]
 		return cf
 	
-
 
 class FrameStack:
 	var attributedefs = { }
@@ -81,6 +91,8 @@ class FrameStack:
 				values0[i] = Vector3()
 			elif a == "Q" or a == "B":
 				values0[i] = Quat() 
+			elif a == "F":
+				values0[i] = 0.0 
 			else:
 				assert (false)
 		valuestack.push_back(values0)
@@ -147,12 +159,12 @@ class FrameStack:
 		else:
 			var values1 = valuestack[1]
 			var lam = inverse_lerp(values0[CFI.TIMESTAMP], values1[CFI.TIMESTAMP], t)
-			for i in range(len(attributedefs)):
+			for i in attributedefs:
 				var a = attributedefs[i]
 				var v0 = values0[i]
 				var v1 = values1.get(i)
 				var v = v0
-				if a == "V3" and v1 != null:
+				if (a == "V3" or a == "F") and v1 != null:
 					v = lerp(v0, v1, lam)
 				elif a == "Q" and v1 != null:
 					v = v0.slerp(v1, lam)

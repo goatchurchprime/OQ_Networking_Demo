@@ -79,7 +79,7 @@ func initialize():
 	info_rect.rect_size = info_label.get_minimum_size(); #Vector2(128, 128);
 	info_rect.add_child(info_label);
 	add_child(info_rect);
-	
+
 	_current_player_height = player_height;
 	vr.vrCamera.translation.y = _current_player_height;
 	_reset_controller_position();

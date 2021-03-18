@@ -1,0 +1,167 @@
+[gd_scene load_steps=19 format=2]
+
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRController/models3d/OculusQuestHand_Left.gltf" type="PackedScene" id=1]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRController/models3d/OculusQuestTouchController_Left.gltf" type="PackedScene" id=2]
+[ext_resource path="res://OQ_Toolkit/OQ_ARVRController/models3d/OculusQuestTouchController_Right.gltf" type="PackedScene" id=3]
+
+[sub_resource type="CubeMesh" id=1]
+size = Vector3( 0.2, 0.1, 0.1 )
+
+[sub_resource type="SpatialMaterial" id=2]
+resource_local_to_scene = true
+albedo_color = Color( 0.105882, 0.188235, 0.509804, 1 )
+
+[sub_resource type="SphereMesh" id=3]
+radius = 0.14
+height = 0.3
+radial_segments = 24
+rings = 24
+
+[sub_resource type="SpatialMaterial" id=4]
+resource_local_to_scene = true
+albedo_color = Color( 0.74, 0.62345, 0.5846, 1 )
+
+[sub_resource type="PrismMesh" id=5]
+size = Vector3( 0.01, 0.01, 0.2 )
+
+[sub_resource type="SpatialMaterial" id=6]
+resource_local_to_scene = true
+albedo_color = Color( 1, 0.0156863, 0.0156863, 1 )
+
+[sub_resource type="SpatialMaterial" id=7]
+albedo_color = Color( 0.342484, 0.296732, 0.0535948, 1 )
+
+[sub_resource type="CylinderMesh" id=8]
+top_radius = 0.025
+bottom_radius = 0.025
+height = 0.004
+
+[sub_resource type="SpatialMaterial" id=9]
+albedo_color = Color( 0.027451, 0.027451, 0.027451, 1 )
+emission_enabled = true
+emission = Color( 0.0509804, 0.14902, 0.960784, 1 )
+emission_energy = 1.0
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="CylinderMesh" id=10]
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.01
+
+[sub_resource type="SpatialMaterial" id=11]
+emission_enabled = true
+emission = Color( 0.956863, 0.878431, 0.027451, 1 )
+emission_energy = 0.87
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="CubeMesh" id=12]
+size = Vector3( 0.002, 0.002, 1 )
+
+[sub_resource type="SpatialMaterial" id=13]
+flags_unshaded = true
+flags_do_not_receive_shadows = true
+albedo_color = Color( 0.976471, 0.552941, 0.0117647, 1 )
+
+[sub_resource type="PrismMesh" id=14]
+left_to_right = 0.1
+size = Vector3( 0.1, 0.2, 0.1 )
+
+[sub_resource type="SpatialMaterial" id=15]
+flags_do_not_receive_shadows = true
+albedo_color = Color( 0.341176, 0.411765, 0.976471, 1 )
+metallic = 0.41
+roughness = 0.45
+
+[node name="RemotePlayer" type="Spatial"]
+
+[node name="HeadCam" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.691634, 0 )
+
+[node name="csgheadmesh" type="CSGMesh" parent="HeadCam"]
+mesh = SubResource( 1 )
+material = SubResource( 2 )
+
+[node name="skullcomponent" type="CSGMesh" parent="HeadCam/csgheadmesh"]
+transform = Transform( 0.9, 0, 0, 0, 1, 0, 0, 0, 0.98, 0, -0.051, 0.085 )
+mesh = SubResource( 3 )
+material = SubResource( 4 )
+
+[node name="visorline" type="MeshInstance" parent="HeadCam"]
+transform = Transform( 2.65432e-14, -1.62921e-07, 1, -1, -1.62921e-07, 0, 1.62921e-07, -1, -1.62921e-07, 1.4521e-08, 0.0545774, -0.0445647 )
+visible = false
+mesh = SubResource( 5 )
+material/0 = SubResource( 6 )
+
+[node name="headtorchcone" type="CSGCylinder" parent="HeadCam"]
+transform = Transform( 1.75, 0, 0, 0, 0.34202, -1.64446, 0, 0.939693, 0.598535, 0, 0.24, 0 )
+visible = false
+radius = 0.03
+height = 0.051
+sides = 16
+cone = true
+material = SubResource( 7 )
+
+[node name="Inset" type="MeshInstance" parent="HeadCam/headtorchcone"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.029, 0 )
+cast_shadow = 0
+mesh = SubResource( 8 )
+material/0 = SubResource( 9 )
+
+[node name="headtorchon" type="MeshInstance" parent="HeadCam/headtorchcone"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0 )
+visible = false
+mesh = SubResource( 10 )
+material/0 = SubResource( 11 )
+
+[node name="SpotLight" type="SpotLight" parent="HeadCam/headtorchcone/headtorchon"]
+transform = Transform( 1, 0, 0, 0, -1.62921e-07, 1, 0, -1, -1.62921e-07, 0, -0.05, 0 )
+light_energy = 1.06
+light_indirect_energy = 7.26
+shadow_enabled = true
+shadow_color = Color( 0.0823529, 0.0431373, 0.254902, 1 )
+spot_range = 721.6
+spot_attenuation = 0.378929
+spot_angle = 34.3
+spot_angle_attenuation = 1.27456
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="HandLeft" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.5, -0.2 )
+
+[node name="OculusQuestTouchController_Left" parent="HandLeft" instance=ExtResource( 2 )]
+
+[node name="OculusQuestHand_Left" parent="HandLeft" instance=ExtResource( 1 )]
+visible = false
+
+[node name="HandRight" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.5, -0.2 )
+
+[node name="OculusQuestTouchController_Right" parent="HandRight" instance=ExtResource( 3 )]
+
+[node name="LaserOrient" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.411951, 0.678362, 0 )
+visible = false
+
+[node name="Length" type="Spatial" parent="LaserOrient"]
+
+[node name="MeshInstance" type="MeshInstance" parent="LaserOrient/Length"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5 )
+mesh = SubResource( 12 )
+material/0 = SubResource( 13 )
+
+[node name="GuardianPoly" type="Spatial" parent="."]
+visible = false
+
+[node name="floorareamesh" type="MeshInstance" parent="GuardianPoly"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0 )
+cast_shadow = 0
+
+[node name="floororigin" type="MeshInstance" parent="GuardianPoly"]
+transform = Transform( -1.62921e-07, 0, 1, 0, 1, 0, -1, 0, -1.62921e-07, 0, 0.3, 0 )
+cast_shadow = 0
+mesh = SubResource( 14 )
+material/0 = SubResource( 15 )

@@ -8,13 +8,13 @@
 [ext_resource path="res://OQ_Toolkit/OQ_Helpers/OQ_VisibilityToggle.tscn" type="PackedScene" id=6]
 [ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin/Feature_VRSimulator.tscn" type="PackedScene" id=7]
 [ext_resource path="res://OQ_Toolkit/OQ_ARVROrigin/Locomotion_Stick.tscn" type="PackedScene" id=8]
-[ext_resource path="res://NetworkGateway.tscn" type="PackedScene" id=9]
+[ext_resource path="res://network_essentials/NetworkGateway.tscn" type="PackedScene" id=9]
 [ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DCanvas.tscn" type="PackedScene" id=10]
 [ext_resource path="res://OQ_Toolkit/OQ_ARVRController/Feature_HandModel_Left.tscn" type="PackedScene" id=11]
 [ext_resource path="res://OQ_Toolkit/OQ_UI2D/OQ_UI2DLogWindow.tscn" type="PackedScene" id=12]
 [ext_resource path="res://OQ_Toolkit/OQ_ARVRController/Feature_UIRayCast.tscn" type="PackedScene" id=13]
-[ext_resource path="res://RemotePlayers.gd" type="Script" id=14]
 [ext_resource path="res://OQ_Toolkit/OQ_ARVRController/Feature_HandModel_Right.tscn" type="PackedScene" id=15]
+[ext_resource path="res://players/rigged_remote player.gd" type="Script" id=16]
 
 [sub_resource type="CubeMesh" id=1]
 size = Vector3( 1, 1, 1 )
@@ -73,7 +73,7 @@ info_label_visible = false
 [node name="Locomotion_Stick" parent="OQ_ARVROrigin" instance=ExtResource( 8 )]
 
 [node name="RemotePlayers" type="Spatial" parent="."]
-script = ExtResource( 14 )
+script = ExtResource( 16 )
 
 [node name="Cube" type="MeshInstance" parent="."]
 transform = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 1.87472, 0.5, -4.428 )

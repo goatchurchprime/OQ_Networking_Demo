@@ -5,7 +5,7 @@ var playerframestacks = { }
 func newremoteplayer(nname, pdat, tlocal):
 	var remoteplayer = get_node_or_null(nname)
 	if remoteplayer == null:
-		remoteplayer = load("res://3d_models/head_model_RPM.glb").instance()
+		remoteplayer = load("res://3d_models/AvatarBot_base_for_export_altbody.glb").instance()
 		remoteplayer.set_name(nname)
 		add_child(remoteplayer)
 		playerframestacks[nname] = FI.FrameStack.new(pdat["frameattributes"])

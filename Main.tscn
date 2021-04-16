@@ -49,7 +49,6 @@ transform = Transform( 0.394103, -0.186382, 0.340659, 0, 0.48537, 0.265557, -0.3
 [node name="NetworkGateway" parent="OQ_VisibilityToggle/OQ_UI2DCanvas" instance=ExtResource( 9 )]
 
 [node name="OQ_ARVROrigin" parent="." instance=ExtResource( 1 )]
-visible = false
 
 [node name="OQ_ARVRCamera" parent="OQ_ARVROrigin" instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0958182, 1.4215, 0.0852009 )
@@ -69,7 +68,6 @@ remote_path = NodePath("../../../OQ_VisibilityToggle")
 [node name="Feature_UIRayCast" parent="OQ_ARVROrigin/OQ_RightController" instance=ExtResource( 13 )]
 
 [node name="Feature_VRSimulator" parent="OQ_ARVROrigin" instance=ExtResource( 7 )]
-visible = false
 info_label_visible = false
 
 [node name="Locomotion_Stick" parent="OQ_ARVROrigin" instance=ExtResource( 8 )]

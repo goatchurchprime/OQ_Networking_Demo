@@ -2,25 +2,70 @@ extends Spatial
 
 onready var islocalplayer = (get_name() == "LocalPlayer")
 
+onready var handlefthand = $HandLeft/OculusQuestHand_Left
+onready var handleftskeleton = handlefthand.find_node("Skeleton")
+onready var handleftmesh = handleftskeleton.find_node("?_handMeshNode")
+onready var handleftbonerestposeinverses = [ ]
+onready var handleftboneposes = [ ]
+
+onready var handrighthand = $HandRight/OculusQuestHand_Right
+onready var handrightskeleton = handrighthand.find_node("Skeleton")
+onready var handrightmesh = handrightskeleton.find_node("?_handMeshNode")
+onready var handrightbonerestposeinverses = [ ]
+onready var handrightboneposes = [ ]
+
+const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15, 16, 18, 19, 20, 21];
+const handskeletonbonecount = 24
+
+func _ready():
+	handleftbonerestposeinverses.resize(handskeletonbonecount)
+	handleftboneposes.resize(handskeletonbonecount)
+	handrightbonerestposeinverses.resize(handskeletonbonecount)
+	handrightboneposes.resize(handskeletonbonecount)
+	handleftskeleton.set_bone_rest(0, Transform())
+	handrightskeleton.set_bone_rest(0, Transform())
+	for i in range(handskeletonbonecount):
+		handleftbonerestposeinverses[i] = Quat(handleftskeleton.get_bone_rest(i).basis.inverse())
+		handleftboneposes[i] = Quat()
+		handrightbonerestposeinverses[i] = Quat(handrightskeleton.get_bone_rest(i).basis.inverse())
+		handrightboneposes[i] = Quat()
+
 func _process(delta):
 	if islocalplayer and vr.vrOrigin != null:
 		transform = vr.vrOrigin.transform 
+		transform.origin = vr.vrOrigin.transform.origin + Vector3(0,0,-1)
 		$HeadCam.transform = vr.vrCamera.transform 
+
 		$HandLeft.transform = vr.leftController.transform 
-		$HandRight.transform = vr.rightController.transform 
 		if vr.leftController.is_hand:
-			var lefthandmodel
-			$HandLeft/OculusQuestHand_Left.visible = vr.leftController._hand_model.visible
+			if vr.leftController._hand_model.tracking_confidence >= 1.0:
+				handlefthand.visible = true
+				handlefthand.scale = vr.leftController._hand_model.scale
+				for i in range(len(_vrapi2hand_bone_map)):
+					var im = _vrapi2hand_bone_map[i]
+					handleftboneposes[im] = handleftbonerestposeinverses[im]*vr.leftController._hand_model._vrapi_bone_orientations[i]
+					handleftskeleton.set_bone_pose(im, handleftboneposes[im])
+			else:
+				handlefthand.visible = false
 			$HandLeft/OculusQuestTouchController_Left.visible = false
 		else:
-			$HandLeft/OculusQuestHand_Left.visible = false
+			handlefthand.visible = false
 			$HandLeft/OculusQuestTouchController_Left.visible = true
 
+		$HandRight.transform = vr.rightController.transform 
 		if vr.rightController.is_hand:
-			$HandRight/OculusQuestHand_Right.visible = vr.rightController._hand_model.visible
+			if vr.rightController._hand_model.tracking_confidence >= 1.0:
+				handrighthand.visible = true
+				handrighthand.scale = vr.rightController._hand_model.scale
+				for i in range(len(_vrapi2hand_bone_map)):
+					var im = _vrapi2hand_bone_map[i]
+					handrightboneposes[im] = handrightbonerestposeinverses[im]*vr.rightController._hand_model._vrapi_bone_orientations[i]
+					handrightskeleton.set_bone_pose(im, handrightboneposes[im])
+			else:
+				handrighthand.visible = false
 			$HandRight/OculusQuestTouchController_Right.visible = false
 		else:
-			$HandRight/OculusQuestHand_Right.visible = false
+			handrighthand.visible = false
 			$HandRight/OculusQuestTouchController_Right.visible = true
 
 

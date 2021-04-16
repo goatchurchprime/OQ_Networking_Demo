@@ -49,20 +49,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://OQ_Toolkit/OQ_Classes/OQClass_ToolGrabLinearController.gd"
 }, {
-"base": "OculusTracker",
-"class": "OculusHandTracker",
-"language": "GDScript",
-"path": "res://addons/godot_ovrmobile/example_scenes/oculus_hand_tracker.gd"
-}, {
-"base": "OculusTracker",
-"class": "OculusTouchController",
-"language": "GDScript",
-"path": "res://addons/godot_ovrmobile/example_scenes/oculus_touch_controller.gd"
-}, {
 "base": "ARVRController",
-"class": "OculusTracker",
+"class": "OQ_ARVRController",
 "language": "GDScript",
-"path": "res://addons/godot_ovrmobile/example_scenes/oculus_tracker.gd"
+"path": "res://OQ_Toolkit/OQ_ARVRController/scripts/OQ_ARVRController.gd"
 } ]
 _global_script_class_icons={
 "FI": "",
@@ -73,9 +63,7 @@ _global_script_class_icons={
 "OQClass_Tool": "",
 "OQClass_ToolGrabController": "",
 "OQClass_ToolGrabLinearController": "",
-"OculusHandTracker": "",
-"OculusTouchController": "",
-"OculusTracker": ""
+"OQ_ARVRController": ""
 }
 
 [application]

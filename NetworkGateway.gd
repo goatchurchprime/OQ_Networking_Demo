@@ -1,15 +1,16 @@
 extends Panel
 
 export var hostportnumber : int = 4547
+export var udpdiscoveryport = 4546
 
 var remoteservers = [ "tunnelvr.goatchurch.org.uk", 
 					  "192.168.43.172 JPCSP",
 					  "192.168.8.104 Quest",
 					  "192.168.8.101 JPC"
 					]
-var multicastudpipnum = "255.255.255.255"
+var broadcastudpipnum = "255.255.255.255"
 const udpdiscoverybroadcasterperiod = 2.0
-var udpdiscoveryport = 4546
+const broadcastservermsg = "OQServer_here!"
 
 enum NETWORK_OPTIONS {
 	AS_SERVER = 1,
@@ -172,10 +173,14 @@ func _process(delta):
 		if udpdiscoverybroadcasterperiodtimer < 0 and localipnumbers != "":
 			if serverbroadcastsudp:  
 				var udpdiscoverybroadcaster = PacketPeerUDP.new()
-				udpdiscoverybroadcaster.connect_to_host(multicastudpipnum, udpdiscoveryport)
-				udpdiscoverybroadcaster.put_packet(("OQServer: "+localipnumbers+" "+uniqueinstancestring).to_utf8())
-				print("put UDP onto ", multicastudpipnum)
-				udpdiscoverybroadcaster.close()
+				udpdiscoverybroadcaster.set_broadcast_enabled(true)
+				var err0 = udpdiscoverybroadcaster.set_dest_address(broadcastudpipnum, udpdiscoveryport)
+				var err1 = udpdiscoverybroadcaster.put_packet((broadcastservermsg+" "+localipnumbers+" "+uniqueinstancestring).to_utf8())
+				print("put UDP onto ", broadcastudpipnum, ":", broadcastudpipnum, " errs:", err0, " ", err1)
+				if err0 != 0 or err1 != 0:
+					print("udpdiscoverybroadcaster error")
+
+
 
 			if networkID == 0:
 				print("creating server on port: ", hostportnumber)
@@ -201,7 +206,7 @@ func _process(delta):
 			var pkt = peer.get_packet()
 			var spkt = pkt.get_string_from_utf8().split(" ")
 			print("Received: ", spkt, " from ", peer.get_packet_ip())
-			if spkt[0] == "OQServer:":
+			if spkt[0] == broadcastservermsg:
 				serverIPnumber = peer.get_packet_ip()
 
 	if (ns == NETWORK_OPTIONS.LOCAL_NETWORK or ns >= NETWORK_OPTIONS.FIXED_URL) and (serverIPnumber != "") and networkID == 0:

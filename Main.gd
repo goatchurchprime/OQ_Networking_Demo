@@ -68,7 +68,7 @@ func playerframedata(keepall):
 		fd[FI.CFI.XRLEFTHANDCONF] = $OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left.tracking_confidence
 		for i in range(24):
 			fd[FI.CFI.XRLEFTHANDROOT+i] = $OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left._vrapi_bone_orientations[i]
-		print("finger ", fd[FI.CFI.XRLEFTHANDROOT+10])
+		#print("finger ", fd[FI.CFI.XRLEFTHANDROOT+10])
 	else:
 		fd[FI.CFI.XRLEFTHANDCONF] = 0.0
 	return fd

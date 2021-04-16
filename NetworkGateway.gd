@@ -3,11 +3,7 @@ extends Panel
 export var hostportnumber : int = 4547
 export var udpdiscoveryport = 4546
 
-var remoteservers = [ "tunnelvr.goatchurch.org.uk", 
-					  "192.168.43.172 JPCSP",
-					  "192.168.8.104 Quest",
-					  "192.168.8.101 JPC"
-					]
+var remoteservers = [ "tunnelvr.goatchurch.org.uk" ]
 var broadcastudpipnum = "255.255.255.255"
 const udpdiscoverybroadcasterperiod = 2.0
 const broadcastservermsg = "OQServer_here!"
@@ -93,6 +89,7 @@ func _server_disconnected():
 	get_tree().set_network_peer(null)
 	networkID = get_tree().get_network_unique_id()
 	assert (networkID == 0)
+	RemotePlayersNode.LocalPlayer.set_name("R%d" % networkID) 
 	deferred_playerconnections.clear()
 	for id in remoteplayersconnected.duplicate():
 		_player_disconnected(id)
@@ -103,6 +100,7 @@ func _server_disconnected():
 func _connected_to_server():
 	networkID = get_tree().get_network_unique_id()
 	assert (networkID > 1)
+	RemotePlayersNode.LocalPlayer.set_name("R%d" % networkID)
 	print("_connected_to_server myid=", networkID)
 	for id in deferred_playerconnections:
 		_player_connected(id)

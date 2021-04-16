@@ -83,6 +83,7 @@ func playerinitdata():
 	pdat["playercolour"] = playercolour
 	pdat["guardianpoly"] = guardianpoly
 	pdat["frameattributes"] = framefilter.attributedefs
+	pdat["avatarscene"] = "res://AvatarScenes/TunnelVRAvatar.tscn"
 	return pdat
 		
 var framerateratereducer = 5

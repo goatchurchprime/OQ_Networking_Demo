@@ -2,10 +2,12 @@ extends Spatial
 
 var playerframestacks = { }
 
+onready var LocalPlayer = $LocalPlayer
+
 func newremoteplayer(nname, pdat, tlocal):
 	var remoteplayer = get_node_or_null(nname)
 	if remoteplayer == null:
-		remoteplayer = preload("res://RemotePlayer.tscn").instance()
+		remoteplayer = preload("res://AvatarScenes/TunnelVRAvatar.tscn").instance()
 		remoteplayer.set_name(nname)
 		remoteplayer.get_node("HeadCam/csgheadmesh/skullcomponent").material.albedo_color = pdat["playercolour"]
 		add_child(remoteplayer)

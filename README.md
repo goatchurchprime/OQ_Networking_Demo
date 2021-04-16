@@ -38,9 +38,17 @@ Or connect to a global server like tunnelvr.goatchurch.org.uk
 
 Your motions will be compressed and delayed by one second for the moment.
 
-# Testing
+# Local testing
 
 The Doppelganger option (hit G on the keyboard) collects your motions and replays them to an avatar copy without 
-going through the network.  However, it simulates delayed and dropped packets to test the 
-robustness of the algorithms.
+going through the network.  It is intended to simulate delayed and dropped packets to test the 
+robustness of the interpolation algorithms.
+
+You can also run this between two devices on the same local area network without a server out on the internet.  
+To do this select Connection: "As server" (key=1 if you are running not in VR) on one of them.
+This will broadcast a message on 255.255.255.255 to be picked up by the other running app, where you have done Connection: "Local network" 
+(key=2 from a keyboard).  When they discover each other this will be replaced by the ip number of the server instance.  
+
+
+
   

@@ -96,6 +96,12 @@ func _physics_process(delta):
 	cumulativetime += delta
 	var tstamp = OS.get_ticks_msec()*0.001
 
+	if $RemotePlayers.has_node("Doppelganger"):
+		var fd = $RemotePlayers.LocalPlayer.avatartoframedata()
+		fd[$RemotePlayers.LocalPlayer.CFI.ORIGINTRANS] *= Transform(Basis().rotated(Vector3(0,1,0), PI), Vector3(0,0,-2))
+		$RemotePlayers.get_node("Doppelganger").framedatatoavatar(fd)
+	return
+	
 	while len(doppelgangerdelaystack) != 0 and doppelgangerdelaystack[0][0] < cumulativetime:
 		var dcf = doppelgangerdelaystack.pop_front()[1]
 		$RemotePlayers.nextcompressedframe("Doppelganger", dcf, tstamp)
@@ -112,7 +118,7 @@ func _physics_process(delta):
 			cf[FI.CFI.ID] = NetworkGateway.networkID
 			NetworkGateway.rpc("gnextcompressedframe", cf)
 
-		if $RemotePlayers.has_node("Doppelganger"):
+		if $RemotePlayers.has_node("DDoppelganger"):
 			cf[FI.CFI.TIMESTAMP] += doppelgangertimeoffset
 			cf[FI.CFI.PREV_TIMESTAMP] += doppelgangertimeoffset
 			var dnetdelay = NetworkGateway.get_node("DoppelgangerPanel/Netdelay").value*0.001
@@ -120,5 +126,6 @@ func _physics_process(delta):
 			var simulatednetworkdelay = rand_range(dnetdelay,dnetdelay*2)
 			if len(doppelgangerdelaystack) < doppelgangerdelaystackmaxsize and rand_range(0, 1) >= dnetdroprate:
 				doppelgangerdelaystack.push_back([cumulativetime + simulatednetworkdelay, cf])
+
 
 	framefilter.currentvalues[FI.CFI.TIMESTAMP] = tstamp

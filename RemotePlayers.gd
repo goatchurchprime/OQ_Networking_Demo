@@ -45,6 +45,8 @@ func nextcompressedframe(nname, cf, tlocal):
 const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15, 16, 18, 19, 20, 21];
 func _process(delta):
 	var tlocal = OS.get_ticks_msec()*0.001
+	return
+	
 	for nname in playerframestacks:
 		var remoteplayer = get_node(nname)
 		var t = tlocal - playerframestacks[nname].mintimeshift - playerframestacks[nname].furtherbacktime

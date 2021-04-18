@@ -1,6 +1,7 @@
 extends Spatial
 
 onready var islocalplayer = (get_name() == "LocalPlayer")
+var doppelgangernode = null
 
 onready var handlefthand = $HandLeft/OculusQuestHand_Left
 onready var handleftcontroller = $HandLeft/OculusQuestTouchController_Left
@@ -100,6 +101,29 @@ func arvrcontrolstoavatar():
 func _process(delta):
 	if islocalplayer and vr.vrOrigin != null:
 		arvrcontrolstoavatar()
+
+remote func networkedavatarframedata(fd):
+	framedatatoavatar(fd)
+
+var framedividerVal = 5
+var framedividerCount = framedividerVal
+func _physics_process(delta):
+	var tstamp = OS.get_ticks_msec()*0.001
+	framedividerCount -= 1
+	if framedividerCount > 0:
+		return
+	if not islocalplayer:
+		return
+	framedividerCount = framedividerVal
+	if networkID >= 1 or doppelgangernode != null:
+		var fd = avatartoframedata()
+		if networkID >= 1:
+			fd[CFI.TIMESTAMP] = tstamp
+			rpc("networkedavatarframedata", fd)
+		if doppelgangernode != null:
+			fd[CFI.TIMESTAMP] = tstamp + 100
+			fd[CFI.ORIGINTRANS] *= Transform(Basis().rotated(Vector3(0,1,0), PI), Vector3(0,0,-2))
+			doppelgangernode.call_deferred("networkedavatarframedata", fd)
 		
 func avatartoframedata():
 	var vizbits = (CFI.BITCONTROLLERLEFTVIZ if handleftcontroller.visible else 0) | \

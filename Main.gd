@@ -28,20 +28,3 @@ func _ready():
 		vr.initialize()
 		if not vr.inVR:
 			LocalPlayer.platform = "Pancake"
-
-		
-var framerateratereducer = 5
-var framecount = 0
-var doppelgangertimeoffset = 10.0
-var doppelgangerdelaystack = [ ]
-const doppelgangerdelaystackmaxsize = 100
-var cumulativetime = 0.0
-func _physics_process(delta):
-	cumulativetime += delta
-	var tstamp = OS.get_ticks_msec()*0.001
-
-	if $RemotePlayers.has_node("Doppelganger"):
-		var fd = $RemotePlayers.LocalPlayer.avatartoframedata()
-		fd[$RemotePlayers.LocalPlayer.CFI.ORIGINTRANS] *= Transform(Basis().rotated(Vector3(0,1,0), PI), Vector3(0,0,-2))
-		$RemotePlayers.get_node("Doppelganger").framedatatoavatar(fd)
-	return

@@ -157,14 +157,10 @@ func _player_disconnected(id):
 remote func spawnintoremoteplayer(avatardata):
 	var senderid = get_tree().get_rpc_sender_id()
 	var remoteplayer = RemotePlayersNode.newremoteplayer(avatardata)
-	remoteplayer.set_network_master(avatardata.networkID)
+	assert (senderid == avatardata["networkid"])
+	remoteplayer.set_network_master(senderid)
 	assert (remote_players_idstonodenames[senderid] == null)
-	remote_players_idstonodenames[senderid] = avatardata.get_name()
-			
-remote func gnextcompressedframe(cf):
-	var tlocal = OS.get_ticks_msec()*0.001
-	var id = cf[FI.CFI.ID]
-	RemotePlayersNode.nextcompressedframe("R%d"%id, cf, tlocal)
+	remote_players_idstonodenames[senderid] = remoteplayer.get_name()
 
 func _process(delta):
 	var ns = $NetworkOptionButton.selected
@@ -237,15 +233,10 @@ func _on_Doppelganger_toggled(button_pressed):
 		$DoppelgangerPanel.visible = true
 		var avatardata = LocalPlayer.avatarinitdata()
 		avatardata["playernodename"] = "Doppelganger"
-		RemotePlayersNode.newremoteplayer(avatardata)
+		LocalPlayer.doppelgangernode = RemotePlayersNode.newremoteplayer(avatardata)
 	else:
 		$DoppelgangerPanel.visible = false
+		LocalPlayer.doppelgangernode = null
 		RemotePlayersNode.removeremoteplayer("Doppelganger")
 	updateplayerlist()
 
-		
-func _on_Interpdelay_value_changed(value):
-	var interpdelay = value/1000
-	for nname in RemotePlayersNode.playerframestacks:
-		RemotePlayersNode.playerframestacks[nname].furtherbacktime = interpdelay
-	$InterpdelayLabel.text = "Interpdelay %.2fs"%interpdelay

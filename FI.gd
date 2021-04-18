@@ -1,5 +1,7 @@
 class_name FI
 
+# junk code to save for later
+"""
 enum CFI {
 	ID 				= -2,
 	TIMESTAMP 		= -1, 
@@ -172,3 +174,88 @@ class FrameStack:
 					v = Basis(v0.slerp(v1, lam))
 				attributevalues[i] = v
 		return attributevalues
+
+
+func playerframedata(keepall):
+	var fd = { 
+		FI.CFI.XRORIGIN:		$OQ_ARVROrigin.transform.origin,
+		FI.CFI.XRBASIS:			$OQ_ARVROrigin.transform.basis, 
+		FI.CFI.XRCAMERAORIGIN:	$OQ_ARVROrigin/OQ_ARVRCamera.transform.origin, 
+		FI.CFI.XRCAMERABASIS:	$OQ_ARVROrigin/OQ_ARVRCamera.transform.basis,
+		FI.CFI.XRLEFTORIGIN:	$OQ_ARVROrigin/OQ_LeftController.transform.origin, 
+		FI.CFI.XRLEFTBASIS:		$OQ_ARVROrigin/OQ_LeftController.transform.basis, 
+		FI.CFI.XRRIGHTORIGIN:	$OQ_ARVROrigin/OQ_RightController.transform.origin, 
+		FI.CFI.XRRIGHTBASIS:	$OQ_ARVROrigin/OQ_RightController.transform.basis 
+	}
+	if keepall or ($OQ_ARVROrigin/OQ_LeftController.visible and $OQ_ARVROrigin/OQ_LeftController.has_node("Feature_HandModel_Left") and 
+			$OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left.model.visible):
+		fd[FI.CFI.XRLEFTHANDCONF] = $OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left.tracking_confidence
+		for i in range(24):
+			fd[FI.CFI.XRLEFTHANDROOT+i] = $OQ_ARVROrigin/OQ_LeftController/Feature_HandModel_Left._vrapi_bone_orientations[i]
+		#print("finger ", fd[FI.CFI.XRLEFTHANDROOT+10])
+	else:
+		fd[FI.CFI.XRLEFTHANDCONF] = 0.0
+	return fd
+
+
+	
+	while len(doppelgangerdelaystack) != 0 and doppelgangerdelaystack[0][0] < cumulativetime:
+		var dcf = doppelgangerdelaystack.pop_front()[1]
+		$RemotePlayers.nextcompressedframe("Doppelganger", dcf, tstamp)
+
+	framecount += 1
+	if framerateratereducer != 0 and (framecount%framerateratereducer) != 0:
+		return
+		
+	var cf = framefilter.CompressFrame(playerframedata(false), false)
+	if len(cf) != 0:
+		cf[FI.CFI.TIMESTAMP] = tstamp
+		cf[FI.CFI.PREV_TIMESTAMP] = framefilter.currentvalues[FI.CFI.TIMESTAMP]
+		if NetworkGateway.networkID > 0:
+			cf[FI.CFI.ID] = NetworkGateway.networkID
+			NetworkGateway.rpc("gnextcompressedframe", cf)
+
+		if $RemotePlayers.has_node("DDoppelganger"):
+			cf[FI.CFI.TIMESTAMP] += doppelgangertimeoffset
+			cf[FI.CFI.PREV_TIMESTAMP] += doppelgangertimeoffset
+			var dnetdelay = NetworkGateway.get_node("DoppelgangerPanel/Netdelay").value*0.001
+			var dnetdroprate = NetworkGateway.get_node("DoppelgangerPanel/Netdelay").value/1000
+			var simulatednetworkdelay = rand_range(dnetdelay,dnetdelay*2)
+			if len(doppelgangerdelaystack) < doppelgangerdelaystackmaxsize and rand_range(0, 1) >= dnetdroprate:
+				doppelgangerdelaystack.push_back([cumulativetime + simulatednetworkdelay, cf])
+
+
+	framefilter.currentvalues[FI.CFI.TIMESTAMP] = tstamp
+
+
+
+	var fiattributes = { 
+		FI.CFI.XRORIGIN:		{"name":"xrorigin", "type":"V3", "precision":0.002},
+		FI.CFI.XRBASIS:			{"name":"xrbasis",  "type":"B",  "precision":0.005}, 
+		FI.CFI.XRCAMERAORIGIN:	{"name":"xrcameraorigin", "type":"V3", "precision":0.002}, 
+		FI.CFI.XRCAMERABASIS:	{"name":"xrcamerabasis",  "type":"B",  "precision":0.005},
+		FI.CFI.XRLEFTORIGIN:	{"name":"xrleftorigin", "type":"V3", "precision":0.002}, 
+		FI.CFI.XRLEFTBASIS:		{"name":"xrleftbasis",  "type":"B",  "precision":0.005}, 
+		FI.CFI.XRRIGHTORIGIN:	{"name":"xrrightorigin", "type":"V3", "precision":0.002}, 
+		FI.CFI.XRRIGHTBASIS:	{"name":"xrrightbasis",  "type":"B",  "precision":0.005}, 
+	}
+	fiattributes[FI.CFI.XRLEFTHANDCONF] = {"name":"xrlefthandconfidence", "type":"F", "precision":0.1}
+	#fiattributes[FI.CFI.XRRIGHTHANDCONF] = {"name":"xrrighthandconfidence", "type":"F", "precision":0.1}
+	for i in range(24):
+		fiattributes[FI.CFI.XRLEFTHANDROOT+i] = {"name":"xrlefthandbone%d"%i, "type":"Q", "precision":0.002}
+		#fiattributes[FI.CFI.XRRIGHTHANDROOT+i] = {"name":"xrrighthandbone%d"%i, "type":"Q", "precision":0.002}
+	framefilter = FI.FrameFilter.new(fiattributes)
+	
+	
+	networkID
+	pdat[FI.CFI.ID] = networkID 
+
+	playerframestacks[nname].setinitialframe(pdat, tlocal)
+
+
+var framerateratereducer = 5
+var framecount = 0
+var doppelgangertimeoffset = 10.0
+var doppelgangerdelaystack = [ ]
+const doppelgangerdelaystackmaxsize = 100
+"""

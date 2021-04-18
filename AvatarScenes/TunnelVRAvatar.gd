@@ -21,7 +21,6 @@ const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15
 const handskeletonbonecount = 24
 
 var platform = "notset"
-var playercolour = Color(1.0, 1.0, 1.0)
 var guardianpoly = PoolVector3Array([Vector3(1,0,1), Vector3(1,0,-1), Vector3(-1,0,-1), Vector3(-1,0,1)])
 var osuniqueid = OS.get_unique_id()
 var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to client
@@ -60,7 +59,7 @@ func _ready():
 		handrightbonerestposeinverses[i] = Quat(handrightskeleton.get_bone_rest(i).basis.inverse())
 		handrightboneposes[i] = Quat()
 
-var localavatardisplacement = Vector3(0,0,-0.1)
+var localavatardisplacement = Vector3(0,0,-0.1)*0
 func arvrcontrolstoavatar():
 	transform = vr.vrOrigin.transform 
 	transform.origin = vr.vrOrigin.transform.origin + localavatardisplacement
@@ -142,7 +141,7 @@ func avatartoframedata():
 			fd[CFI.HANDLEFTHANDQUATS+i] = handleftboneposes[i]
 	if handrighthand.visible:
 		for i in range(24):
-			fd[CFI.FHANDRIGHTHANDQUATS+i] = handrightboneposes[i]
+			fd[CFI.HANDRIGHTHANDQUATS+i] = handrightboneposes[i]
 	return fd
 
 func framedatatoavatar(fd):
@@ -168,8 +167,7 @@ func framedatatoavatar(fd):
 func initavatar(avatardata):
 	set_name(avatardata["playernodename"])
 	platform = avatardata["platform"]
-	playercolour = avatardata["playercolour"]
-	$HeadCam/csgheadmesh/skullcomponent.material.albedo_color = playercolour
+	$HeadCam/csgheadmesh/skullcomponent.material.albedo_color = avatardata["playercolour"]
 	guardianpoly = avatardata["guardianpoly"]
 	osuniqueid = avatardata["osuniqueid"]
 	networkID = avatardata["networkid"]
@@ -177,7 +175,7 @@ func initavatar(avatardata):
 func avatarinitdata():
 	var avatardata = { "playernodename":get_name(),
 					   "platform":platform, 
-					   "playercolour":playercolour, 
+					   "playercolour":$HeadCam/csgheadmesh/skullcomponent.material.albedo_color, 
 					   "guardianpoly":guardianpoly, 
 					   "avatarsceneresource":filename, 
 					   "osuniqueid":osuniqueid, 

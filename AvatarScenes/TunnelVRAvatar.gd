@@ -19,6 +19,12 @@ onready var handrightboneposes = [ ]
 const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15, 16, 18, 19, 20, 21];
 const handskeletonbonecount = 24
 
+var platform = "notset"
+var playercolour = Color(1.0, 1.0, 1.0)
+var guardianpoly = PoolVector3Array([Vector3(1,0,1), Vector3(1,0,-1), Vector3(-1,0,-1), Vector3(-1,0,1)])
+var osuniqueid = OS.get_unique_id()
+var networkID = 0   # 0:unconnected, 1:server, -1:connecting, >1:connected to client
+
 enum CFI {
 	ID 				= -2,
 	TIMESTAMP 		= -1, 
@@ -134,3 +140,23 @@ func framedatatoavatar(fd):
 		for i in range(24):
 			handrightboneposes[i] = fd[CFI.HANDRIGHTHANDQUATS+i]
 			handrightskeleton.set_bone_pose(i, handrightboneposes[i])
+
+func initavatar(avatardata):
+	set_name(avatardata["playernodename"])
+	platform = avatardata["platform"]
+	playercolour = avatardata["playercolour"]
+	$HeadCam/csgheadmesh/skullcomponent.material.albedo_color = playercolour
+	guardianpoly = avatardata["guardianpoly"]
+	osuniqueid = avatardata["osuniqueid"]
+	networkID = avatardata["networkid"]
+
+func avatarinitdata():
+	var avatardata = { "playernodename":get_name(),
+					   "platform":platform, 
+					   "playercolour":playercolour, 
+					   "guardianpoly":guardianpoly, 
+					   "avatarsceneresource":filename, 
+					   "osuniqueid":osuniqueid, 
+					   "networkid":networkID
+					 }
+	return avatardata

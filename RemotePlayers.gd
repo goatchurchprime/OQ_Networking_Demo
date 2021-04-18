@@ -4,40 +4,26 @@ var playerframestacks = { }
 
 onready var LocalPlayer = $LocalPlayer
 
-func newremoteplayer(nname, pdat, tlocal):
-	var remoteplayer = get_node_or_null(nname)
+func newremoteplayer(avatardata):
+	var remoteplayer = get_node_or_null(avatardata["playernodename"])
 	if remoteplayer == null:
-		remoteplayer = preload("res://AvatarScenes/TunnelVRAvatar.tscn").instance()
-		remoteplayer.set_name(nname)
-		remoteplayer.get_node("HeadCam/csgheadmesh/skullcomponent").material.albedo_color = pdat["playercolour"]
+		remoteplayer = load(avatardata["avatarsceneresource"]).instance()
+		remoteplayer.initavatar(avatardata)
 		add_child(remoteplayer)
-		playerframestacks[nname] = FI.FrameStack.new(pdat["frameattributes"])
-		print("Adding remoteplayer: ", nname)
+		print("Adding remoteplayer: ", avatardata["playernodename"])
 	else:
-		print("** remoteplayer already exists: ", pdat["nname"])
-	playerframestacks[nname].setinitialframe(pdat, tlocal)
-	if nname == "Doppelganger":
-		var attributevalues = playerframestacks[nname].valuestack[0]
-		remoteplayer.transform = Transform(attributevalues[FI.CFI.XRBASIS], attributevalues[FI.CFI.XRORIGIN])
-
-	var skeleton = remoteplayer.get_node("HandLeft/OculusQuestHand_Left/ArmatureLeft/Skeleton")
-	for i in range(0, skeleton.get_bone_count()):
-		var bone_rest = skeleton.get_bone_rest(i);
-		skeleton.set_bone_pose(i, Transform(bone_rest.basis))
-		bone_rest.basis = Basis()
-		skeleton.set_bone_rest(i, bone_rest)
-		
+		print("** remoteplayer already exists: ", avatardata["playernodename"])
 	return remoteplayer
 	
-func removeremoteplayer(nname):
-	var remoteplayer = get_node_or_null(nname)
+func removeremoteplayer(playernodename):
+	var remoteplayer = get_node_or_null(playernodename)
 	if remoteplayer != null:
 		remove_child(remoteplayer)
 		remoteplayer.queue_free()
-		playerframestacks.erase(nname)
-		print("Removing remoteplayer: ", nname)
+		playerframestacks.erase(playernodename)
+		print("Removing remoteplayer: ", playernodename)
 	else:
-		print("** remoteplayer already removed: ", nname)
+		print("** remoteplayer already removed: ", playernodename)
 	
 func nextcompressedframe(nname, cf, tlocal):
 	playerframestacks[nname].expandappendframe(cf, tlocal)

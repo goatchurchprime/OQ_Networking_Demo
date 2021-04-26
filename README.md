@@ -7,12 +7,14 @@ Networking between VR players code compatible with the OQ toolkit, with server d
 The main dependency is on the `Oculus Quest VR Toolkit`:
    https://github.com/NeoSpark314/godot_oculus_quest_toolkit/tree/master/OQ_Toolkit
 
-The source code of this is small, so it has been duplicated into this repository
+The source code of this is small, so it has been duplicated into this repository.
 
-The other dependencies you need to fetch from the AssetLib in order to run this 
-are `Godot Oculus Mobile Plugin` and `OpenVR module`
+The library also depends on a new version of the `Godot Oculus Mobile Plugin` than in 
+the asset store, so this has also been committed into addons/godot_ovrmobile.
 
-Fetch these, but only install the parts that are in the `addons` directory.
+The other dependency you need to fetch from the AssetLib in order to run this 
+on a PCVR (ie not the Quest VR) is `OpenVR module`.  Only install the files that 
+are in the `addons` directory.
 
 ## Testing the doppelganger avatar
 

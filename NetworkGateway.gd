@@ -17,7 +17,6 @@ enum NETWORK_OPTIONS { NETWORK_OFF = 0
 # command for running locally on the unix partition
 # /mnt/c/Users/henry/godot/Godot_v3.2.3-stable_linux_server.64 --main-pack /mnt/c/Users/henry/godot/games/OQ_Networking_Demo/releases/OQ_Networking_Demo.pck
 
-onready var MainNode = get_node("/root/Main")
 onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
 onready var LocalPlayer = RemotePlayersNode.get_node("LocalPlayer")
 
@@ -67,8 +66,7 @@ func updatestatusrec(ptxt):
 func _server_disconnected():
 	var ns = $NetworkOptionButton.selected
 	get_tree().set_network_peer(null)
-	LocalPlayer.networkID = get_tree().get_network_unique_id()
-	assert (LocalPlayer.networkID == 0)
+	LocalPlayer.networkID = 0
 	LocalPlayer.set_name("R%d" % LocalPlayer.networkID) 
 	deferred_playerconnections.clear()
 	for id in remote_players_idstonodenames.duplicate():

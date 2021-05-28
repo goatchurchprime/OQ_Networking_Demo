@@ -19,7 +19,10 @@ var fiattributes = {
 const _vrapi2hand_bone_map = [0, 23,  1, 2, 3, 4,  6, 7, 8,  10, 11, 12,  14, 15, 16, 18, 19, 20, 21];
 
 func _run():
+
 	print(len(_vrapi2hand_bone_map))
 	print(bool(0b001010100))
 	var x = { 2:"jjj"}
 	x.erase(2)
+	var y = Transform()
+	print(typeof(y), TYPE_TRANSFORM)

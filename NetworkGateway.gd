@@ -116,6 +116,7 @@ func _player_connected(id):
 	remote_players_idstonodenames[id] = null
 	print("players_connected_list: ", remote_players_idstonodenames)
 	var avatardata = LocalPlayer.avatarinitdata()
+	avatardata["framedata0"] = LocalPlayer.avatartoframedata()
 	rpc_id(id, "spawnintoremoteplayer", avatardata)
 	updatestatusrec("")
 	updateplayerlist()

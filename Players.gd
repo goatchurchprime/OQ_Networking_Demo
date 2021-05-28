@@ -6,7 +6,11 @@ func newremoteplayer(avatardata):
 		remoteplayer = load(avatardata["avatarsceneresource"]).instance()
 		assert (not remoteplayer.islocalplayer)
 		remoteplayer.initavatar(avatardata)
+		var remoteplayerframe = preload("res://RemotePlayerFrame.tscn").instance()
+		remoteplayer.add_child(remoteplayerframe)
 		add_child(remoteplayer)
+		if "framedata0" in avatardata:
+			remoteplayer.framedatatoavatar(avatardata["framedata0"])
 		print("Adding remoteplayer: ", avatardata["playernodename"], "  ", remoteplayer.islocalplayer)
 	else:
 		print("** remoteplayer already exists: ", avatardata["playernodename"])

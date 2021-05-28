@@ -4,14 +4,14 @@ onready var islocalplayer = (get_name() == "LocalPlayer")
 var doppelgangernode = null
 
 onready var handlefthand = $HandLeft/OculusQuestHand_Left
-onready var handleftcontroller = $HandLeft/OculusQuestTouchController_Left
+onready var handleftcontroller = $HandLeft/OculusQuestTouchController_Left_Reactive
 onready var handleftskeleton = handlefthand.find_node("Skeleton")
 onready var handleftmesh = handleftskeleton.find_node("?_handMeshNode")
 onready var handleftbonerestposeinverses = [ ]
 onready var handleftboneposes = [ ]
 
 onready var handrighthand = $HandRight/OculusQuestHand_Right
-onready var handrightcontroller = $HandRight/OculusQuestTouchController_Right
+onready var handrightcontroller = $HandRight/OculusQuestTouchController_Right_Reactive
 onready var handrightskeleton = handrighthand.find_node("Skeleton")
 onready var handrightmesh = handrightskeleton.find_node("?_handMeshNode")
 onready var handrightbonerestposeinverses = [ ]
@@ -44,7 +44,6 @@ enum CFI {
 	HANDLEFTHANDQUATS	= 210,
 	HANDRIGHTHANDQUATS	= 310,
 }
-
 
 func _ready():
 	handleftbonerestposeinverses.resize(handskeletonbonecount)

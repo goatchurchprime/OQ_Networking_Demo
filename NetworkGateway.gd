@@ -17,8 +17,8 @@ enum NETWORK_OPTIONS { NETWORK_OFF = 0
 # command for running locally on the unix partition
 # /mnt/c/Users/henry/godot/Godot_v3.2.3-stable_linux_server.64 --main-pack /mnt/c/Users/henry/godot/games/OQ_Networking_Demo/releases/OQ_Networking_Demo.pck
 
-onready var RemotePlayersNode = get_node("/root/Main/RemotePlayers")
-onready var LocalPlayer = RemotePlayersNode.get_node("LocalPlayer")
+onready var PlayersNode = get_node("/root/Main/Players")
+onready var LocalPlayer = PlayersNode.get_node("LocalPlayer")
 
 var udpdiscoverybroadcasterperiodtimer = udpdiscoverybroadcasterperiod
 var udpdiscoveryreceivingserver = null
@@ -100,9 +100,9 @@ func updateplayerlist():
 	$PlayerList.clear()
 	$PlayerList.add_item("me")
 	$PlayerList.selected = 0
-	for remoteplayer in RemotePlayersNode.get_children():
-		$PlayerList.add_item(remoteplayer.get_name())
-		if plp == remoteplayer.get_name():
+	for player in PlayersNode.get_children():
+		$PlayerList.add_item(player.get_name())
+		if plp == player.get_name():
 			$PlayerList.selected = $PlayerList.get_item_count() - 1
 
 func _player_connected(id):
@@ -123,17 +123,17 @@ func _player_connected(id):
 func _player_disconnected(id):
 	print("_player_disconnected remote=", id)
 	assert (remote_players_idstonodenames.has(id))
-	var playernodename = remote_players_idstonodenames[id]
+	var remoteplayernodename = remote_players_idstonodenames[id]
 	remote_players_idstonodenames.erase(id)
-	if playernodename != null:
-		RemotePlayersNode.removeremoteplayer(playernodename)
+	if remoteplayernodename != null:
+		PlayersNode.removeremoteplayer(remoteplayernodename)
 	print("players_connected_list: ", remote_players_idstonodenames)
 	updatestatusrec("")
 	updateplayerlist()
 
 remote func spawnintoremoteplayer(avatardata):
 	var senderid = get_tree().get_rpc_sender_id()
-	var remoteplayer = RemotePlayersNode.newremoteplayer(avatardata)
+	var remoteplayer = PlayersNode.newremoteplayer(avatardata)
 	assert (senderid == avatardata["networkid"])
 	remoteplayer.set_network_master(senderid)
 	assert (remote_players_idstonodenames[senderid] == null)
@@ -223,10 +223,10 @@ func _on_Doppelganger_toggled(button_pressed):
 		$DoppelgangerPanel.visible = true
 		var avatardata = LocalPlayer.avatarinitdata()
 		avatardata["playernodename"] = "Doppelganger"
-		LocalPlayer.doppelgangernode = RemotePlayersNode.newremoteplayer(avatardata)
+		LocalPlayer.doppelgangernode = PlayersNode.newremoteplayer(avatardata)
 	else:
 		$DoppelgangerPanel.visible = false
 		LocalPlayer.doppelgangernode = null
-		RemotePlayersNode.removeremoteplayer("Doppelganger")
+		PlayersNode.removeremoteplayer("Doppelganger")
 	updateplayerlist()
 

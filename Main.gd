@@ -3,7 +3,7 @@ extends Spatial
 export var vrenabled = true
 
 onready var NetworkGateway = $OQ_VisibilityToggle/OQ_UI2DCanvas.ui_control
-onready var LocalPlayer = $RemotePlayers/LocalPlayer
+onready var LocalPlayer = $Players/LocalPlayer
 
 func _ready():
 	randomize()
@@ -30,4 +30,6 @@ func _ready():
 			LocalPlayer.platform = "Pancake"
 	LocalPlayer.get_node("HeadCam/csgheadmesh/skullcomponent").material.albedo_color = playercolour
 	
-	
+# To access recorded files, do:
+# > /home/julian/Android/Sdk/platform-tools/adb exec-out run-as org.dammertz.vr.godot_oculus_quest_toolkit_demo ls -alh files
+

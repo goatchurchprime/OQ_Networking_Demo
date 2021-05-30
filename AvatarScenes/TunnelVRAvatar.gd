@@ -36,11 +36,15 @@ enum CFI {
 	BITHANDLEFTVIZ 			= 0b01000000, 
 	BITHANDRIGHTVIZ 		= 0b10000000, 
 
-	ORIGINTRANS 		= 100,
-	HEADCAMTRANS 		= 110,
-	HANDLEFTTRANS		= 120,
-	HANDRIGHTTRANS		= 130,
-	VIZBITS				= 140,
+	ORIGINTRANS_POS		= 100,
+	ORIGINTRANS_QUAT 	= 110,
+	HEADCAMTRANS_POS	= 120,
+	HEADCAMTRANS_QUAT	= 130,
+	HANDLEFTTRANS_POS	= 140,
+	HANDLEFTTRANS_QUAT	= 150,
+	HANDRIGHTTRANS_POS	= 160,
+	HANDRIGHTTRANS_QUAT	= 170,
+	VIZBITS				= 180,
 	HANDLEFTHANDQUATS	= 210,
 	HANDRIGHTHANDQUATS	= 310,
 }
@@ -103,10 +107,14 @@ func avatartoframedata():
 				  (CFI.BITHANDLEFTVIZ if handlefthand.visible else 0) | \
 				  (CFI.BITHANDRIGHTVIZ if handrighthand.visible else 0)
 	var fd = { 
-		CFI.ORIGINTRANS:		transform,
-		CFI.HEADCAMTRANS:		$HeadCam.transform,
-		CFI.HANDLEFTTRANS:		$HandLeft.transform, 
-		CFI.HANDRIGHTTRANS:		$HandRight.transform,
+		CFI.ORIGINTRANS_POS:	transform.origin,
+		CFI.ORIGINTRANS_QUAT:	Quat(transform.basis),
+		CFI.HEADCAMTRANS_POS:	$HeadCam.transform.origin,
+		CFI.HEADCAMTRANS_QUAT:	Quat($HeadCam.transform.basis),
+		CFI.HANDLEFTTRANS_POS:	$HandLeft.transform.origin, 
+		CFI.HANDLEFTTRANS_QUAT:	Quat($HandLeft.transform.basis), 
+		CFI.HANDRIGHTTRANS_POS: $HandRight.transform.origin,
+		CFI.HANDRIGHTTRANS_QUAT:Quat($HandRight.transform.basis),
 		CFI.VIZBITS:			vizbits 
 	}
 	if handlefthand.visible:
@@ -118,10 +126,10 @@ func avatartoframedata():
 	return fd
 
 func framedatatoavatar(fd):
-	transform = fd[CFI.ORIGINTRANS]
-	$HeadCam.transform = fd[CFI.HEADCAMTRANS]
-	$HandLeft.transform = fd[CFI.HANDLEFTTRANS]
-	$HandRight.set_transform(fd[CFI.HANDRIGHTTRANS])
+	transform = Transform(fd[CFI.ORIGINTRANS_QUAT], fd[CFI.ORIGINTRANS_POS])
+	$HeadCam.transform = Transform(fd[CFI.HEADCAMTRANS_QUAT], fd[CFI.HEADCAMTRANS_POS])
+	$HandLeft.transform = Transform(fd[CFI.HANDLEFTTRANS_QUAT], fd[CFI.HANDLEFTTRANS_POS])
+	$HandRight.transform = Transform(fd[CFI.HANDRIGHTTRANS_QUAT], fd[CFI.HANDRIGHTTRANS_POS])
 
 	var vizbits = fd[CFI.VIZBITS]
 	handleftcontroller.visible = bool(vizbits & CFI.BITCONTROLLERLEFTVIZ)

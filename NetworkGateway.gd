@@ -224,6 +224,7 @@ func _on_Doppelganger_toggled(button_pressed):
 		$DoppelgangerPanel.visible = true
 		var avatardata = LocalPlayer.avatarinitdata()
 		avatardata["playernodename"] = "Doppelganger"
+		avatardata["framedata0"] = LocalPlayer.avatartoframedata()
 		LocalPlayer.doppelgangernode = PlayersNode.newremoteplayer(avatardata)
 	else:
 		$DoppelgangerPanel.visible = false

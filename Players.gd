@@ -10,7 +10,7 @@ func newremoteplayer(avatardata):
 		remoteplayer.add_child(remoteplayerframe)
 		add_child(remoteplayer)
 		if "framedata0" in avatardata:
-			remoteplayer.framedatatoavatar(avatardata["framedata0"])
+			remoteplayer.get_node("PlayerFrame").networkedavatarframedata(avatardata["framedata0"])
 		print("Adding remoteplayer: ", avatardata["playernodename"], "  ", remoteplayer.islocalplayer)
 	else:
 		print("** remoteplayer already exists: ", avatardata["playernodename"])

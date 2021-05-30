@@ -31,12 +31,12 @@ size = Vector2( 10, 10 )
 [sub_resource type="OpenSimplexNoise" id=4]
 period = 29.5
 
-[sub_resource type="NoiseTexture" id=5]
+[sub_resource type="NoiseTexture" id=7]
 noise = SubResource( 4 )
 
 [sub_resource type="SpatialMaterial" id=6]
 albedo_color = Color( 0.945098, 0.639216, 0.286275, 1 )
-albedo_texture = SubResource( 5 )
+albedo_texture = SubResource( 7 )
 
 [node name="Main" type="Spatial"]
 script = ExtResource( 3 )

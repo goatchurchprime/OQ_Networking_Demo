@@ -8,7 +8,8 @@ onready var LocalPlayer = $Players/LocalPlayer
 # To log an android app do
 # ~/Android/Sdk/platform-tools/adb logcat -s godot:* GodotOVRMobile:*
 # To deply to an Android phone, make sure MainPhone.tscn is the Main scene
-
+# Also, see Project settings -> Display -> Window -> Orientation can be Portrait
+#  on the phone, but must go back to landscape for the Quest
 func _ready():
 	randomize()
 	$OQ_ARVROrigin.transform.origin.x += rand_range(-3, 3)

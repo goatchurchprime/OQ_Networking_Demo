@@ -63,7 +63,9 @@ func _ready():
 		handrightboneposes[i] = Quat()
 
 var localavatardisplacement = Vector3(0,0,-0.1)*0
-func arvrcontrolstoavatar():
+func processlocalavatarposition(delta):
+	if vr.vrOrigin == null:
+		return
 	transform = vr.vrOrigin.transform 
 	transform.origin = vr.vrOrigin.transform.origin + localavatardisplacement
 	$HeadCam.transform = vr.vrCamera.transform 
@@ -108,13 +110,13 @@ func avatartoframedata():
 				  (CFI.BITHANDRIGHTVIZ if handrighthand.visible else 0)
 	var fd = { 
 		CFI.ORIGINTRANS_POS:	transform.origin,
-		CFI.ORIGINTRANS_QUAT:	Quat(transform.basis),
+		CFI.ORIGINTRANS_QUAT:	transform.basis.get_rotation_quat(),
 		CFI.HEADCAMTRANS_POS:	$HeadCam.transform.origin,
-		CFI.HEADCAMTRANS_QUAT:	Quat($HeadCam.transform.basis),
+		CFI.HEADCAMTRANS_QUAT:	$HeadCam.transform.basis.get_rotation_quat(),
 		CFI.HANDLEFTTRANS_POS:	$HandLeft.transform.origin, 
-		CFI.HANDLEFTTRANS_QUAT:	Quat($HandLeft.transform.basis), 
+		CFI.HANDLEFTTRANS_QUAT:	$HandLeft.transform.basis.get_rotation_quat(), 
 		CFI.HANDRIGHTTRANS_POS: $HandRight.transform.origin,
-		CFI.HANDRIGHTTRANS_QUAT:Quat($HandRight.transform.basis),
+		CFI.HANDRIGHTTRANS_QUAT:$HandRight.transform.basis.get_rotation_quat(),
 		CFI.VIZBITS:			vizbits 
 	}
 	if handlefthand.visible:

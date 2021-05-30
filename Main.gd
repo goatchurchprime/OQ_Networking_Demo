@@ -5,6 +5,10 @@ export var vrenabled = true
 onready var NetworkGateway = $OQ_VisibilityToggle/OQ_UI2DCanvas.ui_control
 onready var LocalPlayer = $Players/LocalPlayer
 
+# To log an android app do
+# ~/Android/Sdk/platform-tools/adb logcat -s godot:* GodotOVRMobile:*
+# To deply to an Android phone, make sure MainPhone.tscn is the Main scene
+
 func _ready():
 	randomize()
 	$OQ_ARVROrigin.transform.origin.x += rand_range(-3, 3)

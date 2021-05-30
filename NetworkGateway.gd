@@ -3,7 +3,8 @@ extends Panel
 export var hostportnumber : int = 4547
 export var udpdiscoveryport = 4546
 
-var remoteservers = [ "tunnelvr.goatchurch.org.uk" ]
+var remoteservers = [ "tunnelvr.goatchurch.org.uk", 
+					  "192.168.43.1" ]
 var broadcastudpipnum = "255.255.255.255"
 const udpdiscoverybroadcasterperiod = 2.0
 const broadcastservermsg = "OQServer_here!"
@@ -116,7 +117,7 @@ func _player_connected(id):
 	remote_players_idstonodenames[id] = null
 	print("players_connected_list: ", remote_players_idstonodenames)
 	var avatardata = LocalPlayer.avatarinitdata()
-	avatardata["framedata0"] = LocalPlayer.avatartoframedata()
+	avatardata["framedata0"] = LocalPlayer.get_node("PlayerFrame").framedata0
 	rpc_id(id, "spawnintoremoteplayer", avatardata)
 	updatestatusrec("")
 	updateplayerlist()
@@ -224,7 +225,7 @@ func _on_Doppelganger_toggled(button_pressed):
 		$DoppelgangerPanel.visible = true
 		var avatardata = LocalPlayer.avatarinitdata()
 		avatardata["playernodename"] = "Doppelganger"
-		avatardata["framedata0"] = LocalPlayer.avatartoframedata()
+		avatardata["framedata0"] = LocalPlayer.get_node("PlayerFrame").framedata0
 		LocalPlayer.doppelgangernode = PlayersNode.newremoteplayer(avatardata)
 	else:
 		$DoppelgangerPanel.visible = false

@@ -3,21 +3,38 @@ extends Node
 const CFI_TIMESTAMP 		= -1 
 
 var framedata0 = { }
-func thinframedatatolerance(fd):
+func thinframedata(fd):
 	var vd = { }
 	for k in fd:
 		var v = fd[k]
-		var ty = typeof(v)
-		if ty == TYPE_TRANSFORM:
-			pass
-		elif ty == TYPE_QUAT:
-			0x10000
+		var v0 = framedata0.get(k, null)
+		if v0 != null:
+			var ty = typeof(v)
+			if ty == TYPE_QUAT:
+				var dv = v0*v.inverse()
+				if dv.w > 0.995:
+					v = null
+			elif ty == TYPE_VECTOR3:
+				var dv = v0 - v
+				if dv.length() < 0.002:
+					v = null
+			elif ty == TYPE_INT:
+				if v0 == v:
+					v = null
+			else:
+				print("unknown type ", ty, " ", v)
+		if v != null:
+			vd[k] = v
+			framedata0[k] = v
+	return vd
+
 
 var framedividerVal = 5
 var framedividerCount = framedividerVal
+var DframereportCount = 0
+var Dcumulativebytes = 0
 func _process(delta):
-	if vr.vrOrigin != null:
-		get_parent().arvrcontrolstoavatar()
+	get_parent().processlocalavatarposition(delta)
 
 	var tstamp = OS.get_ticks_msec()*0.001
 	framedividerCount -= 1
@@ -26,21 +43,23 @@ func _process(delta):
 	framedividerCount = framedividerVal
 
 	var fd = get_parent().avatartoframedata()
-
+	var vd = thinframedata(fd)
+	
+	Dcumulativebytes += len(var2bytes(vd))
+	DframereportCount += 1
+	if DframereportCount == 10:
+		print("Frame bytes: ", Dcumulativebytes)
+		Dcumulativebytes= 0
+		DframereportCount = 0
+	
 	if get_parent().networkID >= 1:
-		fd[CFI_TIMESTAMP] = tstamp
-		get_node("PlayerFrame").rpc("networkedavatarframedata", fd)
+		vd[CFI_TIMESTAMP] = tstamp
+		rpc("networkedavatarthinnedframedata", vd)
+		
 	var doppelgangernode = get_parent().get_parent().get_node_or_null("Doppelganger")
 	if doppelgangernode != null:
-		fd[CFI_TIMESTAMP] = tstamp + 100
-		doppelgangernode.get_node("PlayerFrame").call_deferred("networkedavatarframedata", fd)
-
-
-static func QuattoV3(q):
-	return Vector3(q.x, q.y, q.z)*(-1 if q.w < 0 else 1)
-	
-static func V3toQuat(v):
-	return Quat(v.x, v.y, v.z, sqrt(max(0.0, 1.0 - v.length_squared())))
+		vd[CFI_TIMESTAMP] = tstamp + 100
+		doppelgangernode.get_node("PlayerFrame").call_deferred("networkedavatarthinnedframedata", vd)
 
 
 
